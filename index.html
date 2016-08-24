@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+	</head>
+	<style>
+		body {
+			margin: 0;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			width: 100%;
+			height: 100%;
+		}
+		
+		.tool {
+			height: 450px;
+			width: 150px;
+			text-align: center;
+			background-color: #eee;
+		}
+		
+		.tool span {
+			display: inline-block;
+			position: relative;
+			height: 120px;
+			width: 120px;
+			margin: 15px;
+			background-color: rgba(255, 255, 255, 0.5);
+		}
+		
+		.tool div {
+			position: absolute;
+			top: 44px;
+			left: 44px;
+			width: 32px;
+			height: 32px;
+			background-color: rgb(22, 124, 255);
+			z-index: 2;
+		}
+		
+		#canvas {
+			position: absolute;
+			left: 150px;
+			top: 0px;
+			z-index: 1;
+		}
+		
+		#jtopo_textfield {
+			z-index: 999999;
+		}
+	</style>
+
+	<body>
+		<div class="tool">
+			<span>打印机<div data-class="IT" id="item1" onmousedown="$(this,event)"></div></span>
+			<span>交换机<div data-class="IT" id="item2" onmousedown="$(this,event)"></div></span>
+			<span>终端<div data-class="IT" id="item3" onmousedown="$(this,event)"></div></span>
+		</div>
+		<textarea id="jtopo_textfield" style="display:none;width: 60px;position: absolute;" onkeydown="if(event.keyCode==13)this.blur();"></textarea>
+
+		<canvas id="canvas" height="450px" width="450px"></canvas>
+		<p>此demo内容如下：</p>
+		<li>1 由初始数据进行绘制topo图节点与连线</li>
+		<li>2 对不同节点进行属性的设置，连线会根据条件产生不同的效果</li>
+		<li>3 拖拽添加元素</li>
+		<li>4 此demo为最简功能可行展示，没有任何数据绑定等过程</li>
+		<p>详细数据见源码JSON</p>
+	</body>
+	<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
+	<script type="text/javascript" src="js/topo.js"></script>
+	<script type="text/javascript" src="js/draggabilly.js"></script>
+	<script type="text/javascript" src="js/lsvih.js"></script>
+	<script>
+		//初始数据
+		var type = [{
+			"id": 1,
+			"class": "IT",
+			"name": "打印机",
+			"value": 1
+		}, {
+			"id": 2,
+			"class": "IT",
+			"name": "交换机",
+			"value": 1
+		}, {
+			"id": 3,
+			"class": "IT",
+			"name": "终端",
+			"value": 2
+		}];
+		var nodes = [{
+			"id": 1,
+			"class": "IT",
+			"type": "交换机",
+			"value": 1,
+			"name": "node1",
+			"x": 10,
+			"y": 10
+		}, {
+			"id": 2,
+			"class": "IT",
+			"type": "交换机",
+			"value": 1,
+			"name": "node2",
+			"x": 50,
+			"y": 50
+		}, {
+			"id": 3,
+			"class": "IT",
+			"type": "交换机",
+			"value": 2,
+			"name": "node3",
+			"x": 200,
+			"y": 50
+		}];
+
+		var links = [{
+			"from": 1,
+			"to": 2
+		}, {
+			"from": 1,
+			"to": 3
+		}]
+
+		/**
+		 * 判断两个Node是否符合规则
+		 * @param {Object} beginNode
+		 * @param {Object} endNode
+		 */
+		function fCalVaule(beginNode, endNode) {
+			return __fGetValue(beginNode.text) !== __fGetValue(endNode.text)
+
+			function __fGetValue(NodeName) {
+				for(var k in nodes) {
+					if(nodes[k].name == NodeName) return nodes[k].value;
+				}
+			}
+		}
+
+		/**
+		 * 根据id在指定数组查找元素的下标
+		 * @param {Number} id
+		 */
+		function fFindNodeSortById(id) {
+			var name;
+			for(var s in nodes) {
+				if(nodes[s].id == id) name = nodes[s].name;
+			}
+			for(var k in scene.childs) {
+				if(scene.childs[k].elementType == 'node' && scene.childs[k].text == name) return k;
+			}
+		}
+
+		/**
+		 * 增加节点
+		 * @param {Number} nodeType 输入节点的类型
+		 * @param {Number} x 节点x坐标
+		 * @param {Number} y 节点y坐标
+		 */
+		function fAddNode(nodeClass, nodeType, x, y) {
+			var nodenum = nodes.length;
+			nodes.push({
+				"id": nodenum + 1,
+				"class": nodeClass,
+				"type": nodeType,
+				"name": nodeType + (nodenum + 1),
+				"x": x,
+				"y": y
+			})
+			var node = new JTopo.Node(nodeType + (nodenum + 1));
+			node.id = nodenum + 1;
+			node.setSize(44,44);
+			node.setImage('./img/' + nodeClass + '/' + nodeType + '.png', true);
+			node.setLocation(x, y);
+			scene.add(node);
+		}
+		//每个node都有一个独一无二的id,对应数据中的id
+		var canvas;
+		var scene;
+		var stage;
+		$(document).ready(function() {
+			canvas = document.getElementById('canvas');
+			stage = new JTopo.Stage(canvas);
+			scene = new JTopo.Scene(stage);
+
+			canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
+			canvas.height = PAGE_HEIGHT;
+
+			scene.background = 'img/bg.jpg';
+			for(var i = 0; i < nodes.length; i++) { //遍历已有的节点数组，将节点加入对象中
+				var node = new JTopo.Node(nodes[i].name);
+				node.setLocation(nodes[i].x, nodes[i].y);
+				node.setSize(44,44);
+				node.setImage('./img/' + nodes[i].class + '/' + nodes[i].type + '.png', true);
+				node.id = nodes[i].id;
+				scene.add(node);
+			}
+			for(var j = 0; j < links.length; j++) { //遍历已有的连线数组
+				var beginNode = scene.childs[fFindNodeSortById(links[j].from)];
+				var endNode = scene.childs[fFindNodeSortById(links[j].to)];
+				var link = new JTopo.FoldLink(beginNode, endNode);
+				scene.add(link);
+			}
+			var beginNode = null;
+			var tempNodeA = new JTopo.Node('tempA');;
+			tempNodeA.setSize(1, 1);
+
+			var tempNodeZ = new JTopo.Node('tempZ');;
+			tempNodeZ.setSize(1, 1);
+
+			var link = new JTopo.FoldLink(tempNodeA, tempNodeZ);
+
+			scene.click(function(e) {
+				if(e.button == 2) {
+					scene.remove(link);
+					beginNode = null;
+					return;
+				}
+				if(e.target != null && e.target instanceof JTopo.Node) {
+					if(beginNode == null) {
+						beginNode = e.target;
+						scene.add(link);
+						tempNodeA.setLocation(e.x, e.y);
+						tempNodeZ.setLocation(e.x, e.y);
+					} else if(beginNode !== e.target) { //当连线的起点与终点不在同一点时创建连线
+						var endNode = e.target;
+						var l = new JTopo.FoldLink(beginNode, endNode);
+						links.push({
+							"from": beginNode.text,
+							"to": endNode.text
+						}); //将新增的连线存入数组
+						scene.add(l);
+						beginNode = null;
+						scene.remove(link);
+					} else {
+						beginNode = null;
+					}
+				} else {
+					scene.remove(link);
+					beginNode = null;
+				}
+			});
+
+			scene.mousedown(function(e) { //当连线没有连上目标时释放连线
+				if(e.target == null || e.target === beginNode || e.target === link) {
+					scene.remove(link);
+				}
+			});
+			scene.mousemove(function(e) {
+				tempNodeZ.setLocation(e.x, e.y);
+			});
+			//双击更改当前节点文字内容
+			var textfield = $("#jtopo_textfield");
+			scene.dbclick(function(event) {
+				if(event.target == null) return;
+				var e = event.target;
+				textfield.css({
+					top: event.pageY,
+					left: event.pageX - e.width / 2
+				}).show().attr('value', e.text).attr('data-id', e.id).focus().select();
+				e.text = "";
+				textfield[0].JTopoNode = e;
+			});
+			//结束拖动更新节点数据的坐标
+			scene.mouseup(function(event) {
+				if(event.target == null) return;
+				var e = event.target;
+				var thisnode = nodes[lsvih.array.getSubByKey({
+					"id": e.id
+				}, nodes)];
+				thisnode.y = event.pageY;
+				thisnode.x = event.pageX - TOOL_BAR_WIDTH - e.width / 2;
+			});
+			//改变节点数据的文字内容
+			$("#jtopo_textfield").blur(function() {
+				nodes[lsvih.array.getSubByKey({
+					"id": textfield.attr("data-id")
+				}, nodes)].text = textfield.attr('value');
+				textfield[0].JTopoNode.text = textfield.hide().val();
+			});
+		});
+
+		//拖动工具箱中的控件到画布中。
+		var draggableElems = document.querySelectorAll('.tool div');
+		var draggies = [];
+		for(var i = 0, len = draggableElems.length; i < len; i++) {
+			var draggableElem = draggableElems[i];
+			var draggie = new Draggabilly(draggableElem);
+			draggies.push(draggie);
+		}
+		//落点在画布内
+		for(var i = 0, len = draggies.length; i < len; i++) {
+			draggies[i].on('dragEnd', function(event, pointer) {
+				x = pointer.pageX;
+				y = pointer.pageY;
+				if(x >= TOOL_BAR_WIDTH && x <= PAGE_WIDTH && y >= 0 && y <= PAGE_HEIGHT) {
+					fAddNode(this.element.getAttribute("data-class"),this.element.parentNode.innerText, x - TOOL_BAR_WIDTH - scene.translateX, y - scene.translateY)
+				}
+				this.element.style.left = "44px";
+				this.element.style.top = "44px";
+				return true;
+			});
+		}
+
+		var TOOL_BAR_WIDTH = 150;
+		var PAGE_WIDTH = window.innerWidth;
+		var PAGE_HEIGHT = window.innerHeight;
+	</script>
+
+</html>
