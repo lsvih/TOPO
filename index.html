@@ -19,6 +19,7 @@
 		}
 		
 		.tool {
+			font-size: 12px;
 			height: 450px;
 			width: 150px;
 			text-align: center;
@@ -28,19 +29,18 @@
 		.tool span {
 			display: inline-block;
 			position: relative;
-			height: 120px;
-			width: 120px;
+			height: 80px;
+			width: 50px;
 			margin: 15px;
 			background-color: rgba(255, 255, 255, 0.5);
 		}
 		
 		.tool div {
 			position: absolute;
-			top: 44px;
-			left: 44px;
-			width: 32px;
+			top: 29px;
+			width: 100%;
+			text-align: center;
 			height: 32px;
-			background-color: rgb(22, 124, 255);
 			z-index: 2;
 		}
 		
@@ -54,46 +54,64 @@
 		#jtopo_textfield {
 			z-index: 999999;
 		}
+		li{
+			list-style-type:none;
+		}
+		.class-name {
+			height: 20px!important;
+			background-color: #000!important;
+			color:#fff!important;
+			font-size: 20px;
+			font-weight: bold;
+			width: 100%!important;
+			margin: 0!important;
+		}
 	</style>
 
 	<body>
 		<div class="tool">
-			<span>打印机<div data-class="IT" id="item1" onmousedown="$(this,event)"></div></span>
-			<span>交换机<div data-class="IT" id="item2" onmousedown="$(this,event)"></div></span>
-			<span>终端<div data-class="IT" id="item3" onmousedown="$(this,event)"></div></span>
+
 		</div>
 		<textarea id="jtopo_textfield" style="display:none;width: 60px;position: absolute;" onkeydown="if(event.keyCode==13)this.blur();"></textarea>
 
 		<canvas id="canvas" height="450px" width="450px"></canvas>
-		<p>此demo内容如下：</p>
-		<li>1 由初始数据进行绘制topo图节点与连线</li>
-		<li>2 对不同节点进行属性的设置，连线会根据条件产生不同的效果</li>
-		<li>3 拖拽添加元素</li>
-		<li>4 此demo为最简功能可行展示，没有任何数据绑定等过程</li>
-		<p>详细数据见源码JSON</p>
 	</body>
 	<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
 	<script type="text/javascript" src="js/topo.js"></script>
 	<script type="text/javascript" src="js/draggabilly.js"></script>
 	<script type="text/javascript" src="js/lsvih.js"></script>
 	<script>
+		var classList = ["IT", "ICS", "医疗", "无线电", "通用符号"];
 		//初始数据
 		var type = [{
 			"id": 1,
 			"class": "IT",
-			"name": "打印机",
-			"value": 1
+			"name": "打印机"
 		}, {
 			"id": 2,
 			"class": "IT",
-			"name": "交换机",
-			"value": 1
+			"name": "交换机"
 		}, {
 			"id": 3,
 			"class": "IT",
-			"name": "终端",
-			"value": 2
-		}];
+			"name": "DNS服务器"
+		},{
+			"id": 4,
+			"class": "医疗",
+			"name": "CT 扫描机"
+		},{
+			"id": 5,
+			"class": "无线电",
+			"name": "T1回传单元"
+		},{
+			"id": 6,
+			"class": "ICS",
+			"name": "DCS"
+		},{
+			"id": 7,
+			"class": "通用符号",
+			"name": "Web"
+		},];
 		var nodes = [{
 			"id": 1,
 			"class": "IT",
@@ -126,8 +144,29 @@
 		}, {
 			"from": 1,
 			"to": 3
-		}]
-
+		}];
+		fInitTools(classList, type);
+		/**
+		 * 初始化工具栏
+		 * @param {Array} classList
+		 * @param {Array} typeList
+		 */
+		function fInitTools(classList, typeList) {
+			for(var i = 0; i < classList.length; i++) {
+				var classObj = document.createElement("li");
+				classObj.className = "class";
+				classObj.innerHTML = '<span class="class-name">' + classList[i] + '</span>';
+				$(".tool").append(classObj);
+				for(var j = 0; j < typeList.length; j++) {
+					if(typeList[j].class == classList[i]) {
+						var toolObj = document.createElement("span");
+						toolObj.innerHTML = typeList[j].name + '<div data-class="' + classList[i] + '" onmousedown="$(this,event)"><img src="img/' + classList[i] + '/' + typeList[j].name + '.png"></div>'
+						$(".tool .class:eq(" + i + ")").append(toolObj);
+					}
+				}
+			}
+			fInitDrag();
+		}
 		/**
 		 * 判断两个Node是否符合规则
 		 * @param {Object} beginNode
@@ -175,7 +214,7 @@
 			})
 			var node = new JTopo.Node(nodeType + (nodenum + 1));
 			node.id = nodenum + 1;
-			node.setSize(44,44);
+			node.setSize(44, 44);
 			node.setImage('./img/' + nodeClass + '/' + nodeType + '.png', true);
 			node.setLocation(x, y);
 			scene.add(node);
@@ -188,7 +227,9 @@
 			canvas = document.getElementById('canvas');
 			stage = new JTopo.Stage(canvas);
 			scene = new JTopo.Scene(stage);
-
+			$(".tool").css({
+				height: PAGE_HEIGHT
+			})
 			canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
 			canvas.height = PAGE_HEIGHT;
 
@@ -196,7 +237,7 @@
 			for(var i = 0; i < nodes.length; i++) { //遍历已有的节点数组，将节点加入对象中
 				var node = new JTopo.Node(nodes[i].name);
 				node.setLocation(nodes[i].x, nodes[i].y);
-				node.setSize(44,44);
+				node.setSize(44, 44);
 				node.setImage('./img/' + nodes[i].class + '/' + nodes[i].type + '.png', true);
 				node.id = nodes[i].id;
 				scene.add(node);
@@ -269,7 +310,7 @@
 			});
 			//结束拖动更新节点数据的坐标
 			scene.mouseup(function(event) {
-				if(event.target == null) return;
+				if(event.target == null || event.target.elementType == "link") return;
 				var e = event.target;
 				var thisnode = nodes[lsvih.array.getSubByKey({
 					"id": e.id
@@ -285,27 +326,31 @@
 				textfield[0].JTopoNode.text = textfield.hide().val();
 			});
 		});
-
-		//拖动工具箱中的控件到画布中。
-		var draggableElems = document.querySelectorAll('.tool div');
-		var draggies = [];
-		for(var i = 0, len = draggableElems.length; i < len; i++) {
-			var draggableElem = draggableElems[i];
-			var draggie = new Draggabilly(draggableElem);
-			draggies.push(draggie);
-		}
-		//落点在画布内
-		for(var i = 0, len = draggies.length; i < len; i++) {
-			draggies[i].on('dragEnd', function(event, pointer) {
-				x = pointer.pageX;
-				y = pointer.pageY;
-				if(x >= TOOL_BAR_WIDTH && x <= PAGE_WIDTH && y >= 0 && y <= PAGE_HEIGHT) {
-					fAddNode(this.element.getAttribute("data-class"),this.element.parentNode.innerText, x - TOOL_BAR_WIDTH - scene.translateX, y - scene.translateY)
-				}
-				this.element.style.left = "44px";
-				this.element.style.top = "44px";
-				return true;
-			});
+		/**
+		 * 初始化拖动控件
+		 */
+		function fInitDrag() {
+			//拖动工具箱中的控件到画布中。
+			var draggableElems = document.querySelectorAll('.tool div');
+			var draggies = [];
+			for(var i = 0, len = draggableElems.length; i < len; i++) {
+				var draggableElem = draggableElems[i];
+				var draggie = new Draggabilly(draggableElem);
+				draggies.push(draggie);
+			}
+			//落点在画布内
+			for(var i = 0, len = draggies.length; i < len; i++) {
+				draggies[i].on('dragEnd', function(event, pointer) {
+					x = pointer.pageX;
+					y = pointer.pageY;
+					if(x >= TOOL_BAR_WIDTH && x <= PAGE_WIDTH && y >= 0 && y <= PAGE_HEIGHT) {
+						fAddNode(this.element.getAttribute("data-class"), this.element.parentNode.innerText, x - TOOL_BAR_WIDTH - scene.translateX, y - scene.translateY)
+					}
+					this.element.style.left = "0";
+					this.element.style.top = "29px";
+					return true;
+				});
+			}
 		}
 
 		var TOOL_BAR_WIDTH = 150;
