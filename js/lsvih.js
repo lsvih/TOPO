@@ -80,7 +80,7 @@
 				var time = str.replace("T", " ");
 				var timearr = time.split(" ");
 				var datearr = timearr[0].split("-");
-				var hourarr = timearr[1]!==undefined?timearr[1].split(":"):[0,0,0];
+				var hourarr = timearr[1] !== undefined ? timearr[1].split(":") : [0, 0, 0];
 				var d = new Date(datearr[0], Number(datearr[1] - 1), datearr[2], hourarr[0], hourarr[1], hourarr[2]);
 				var ts = d.getTime();
 				return Math.floor(ts / 1000)
@@ -165,12 +165,21 @@
 			getObjByKey: function(keyjson, array) {
 				return array[this.getSubByKey(keyjson, array)];
 			},
-			getArrByCondition: function(condition, array){
+			getArrByCondition: function(condition, array) {
 				var arr = [];
-				array.map(function(obj){
-					eval('if(obj.'+ condition +'){arr.push({obj})}');
+				array.map(function(obj) {
+					eval('if(obj.' + condition + '){arr.push({obj})}');
 				});
 				return arr;
+			},
+			delObjByKey: function(keyjson, array) {
+				var index = this.getSubByKey(keyjson, array);
+				if(index !== false) {
+					return this.delObjBySub(index, array);
+				}
+			},
+			delObjBySub: function(sub, array) {
+				return array.splice(sub, 1);
 			}
 		},
 		/**

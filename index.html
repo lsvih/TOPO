@@ -483,6 +483,198 @@
 		var nodes = [];
 		var links = [];
 		fInitTools(classList, type);
+
+		//每个node都有一个独一无二的id,对应数据中的id
+		var canvas;
+		var scene;
+		var stage;
+		var currentNode;
+		$(document).ready(function() {
+			canvas = document.getElementById('canvas');
+			stage = new JTopo.Stage(canvas);
+			scene = new JTopo.Scene(stage);
+			$(".tool").css({
+				height: PAGE_HEIGHT
+			});
+			$('li').each(function() {
+				tool_max_margin += $(this).height()
+			});
+			$('.tool').mousewheel(function(event, delta) {
+				if(tool_margin + delta > 0) {
+					$('.tool').css({
+						marginTop: 0
+					})
+				} else if(tool_margin + delta < PAGE_HEIGHT - tool_max_margin) {
+					$('.tool').css({
+						marginTop: PAGE_HEIGHT - tool_max_margin
+					})
+				} else {
+					tool_margin += delta;
+					$('.tool').css({
+						marginTop: tool_margin
+					})
+				}
+
+			});
+			canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
+			canvas.height = PAGE_HEIGHT;
+			scene.background = 'img/bg.jpg';
+			for(var i = 0; i < nodes.length; i++) { //遍历已有的节点数组，将节点加入对象中
+				scene.add(nodes);
+			}
+			for(var j = 0; j < links.length; j++) { //遍历已有的连线数组
+				scene.add(links[j]);
+			}
+			var beginNode = null;
+			var tempNodeA = new JTopo.Node('tempA');;
+			tempNodeA.setSize(1, 1);
+
+			var tempNodeZ = new JTopo.Node('tempZ');;
+			tempNodeZ.setSize(1, 1);
+
+			var link = new JTopo.Link(tempNodeA, tempNodeZ);
+
+			scene.click(function(e) {
+				if(e.button == 2) {
+					scene.remove(link);
+					beginNode = null;
+					return;
+				}
+				if(e.target != null && e.target instanceof JTopo.Node) {
+					if(beginNode == null) {
+						beginNode = e.target;
+						scene.add(link);
+						tempNodeA.setLocation(e.x, e.y);
+						tempNodeZ.setLocation(e.x, e.y);
+					} else if(beginNode !== e.target) { //当连线的起点与终点不在同一点时创建连线
+						var endNode = e.target;
+						var l = new JTopo.Link(beginNode, endNode);
+						l.arrowsRadius = 15;
+						links.push(l); //将新增的连线存入数组
+						scene.add(l);
+						beginNode = null;
+						scene.remove(link);
+					} else {
+						beginNode = null;
+					}
+				} else {
+					scene.remove(link);
+					beginNode = null;
+				}
+			});
+
+			scene.mouseup(function(event) {
+				if(event.target == null) return;
+				if(event.target.elementType == "node") {
+					currentNode = event.target;
+					if(event.which == 3) {
+						$("#contextmenu").css({
+							top: event.pageY,
+							left: event.pageX
+						}).show();
+					}
+
+				}
+			});
+			scene.mousedown(function(e) { //当连线没有连上目标时释放连线
+				$("#contextmenu").hide();
+				if(e.target == null || e.target === beginNode || e.target === link) {
+					scene.remove(link);
+				}
+			});
+			scene.mousemove(function(e) {
+				tempNodeZ.setLocation(e.x, e.y);
+			});
+			//双击更改当前节点文字内容
+			var textfield = $("#jtopo_textfield");
+			scene.dbclick(function(event) {
+				if(event.target == null) return;
+				if(event.target.elementType == "node") {
+					var e = event.target;
+					textfield.css({
+						top: event.pageY - scene.translateY - e.height / 2,
+						left: event.pageX - e.width / 2 - scene.translateX
+					}).show().attr('value', e.text).attr('data-id', e._id).focus().select();
+					e.text = "";
+					textfield[0].JTopoNode = e;
+				}
+
+			});
+			//结束拖动更新节点数据的坐标
+			//限制条件，右键不更新坐标
+			scene.mouseup(function(event) {
+				if(event.target == null || event.which == 3) return;
+				if(event.target.elementType == "node") {
+					var e = event.target;
+					var thisnode = nodes[lsvih.array.getSubByKey({
+						"_id": e._id
+					}, nodes)];
+					thisnode.y = event.pageY - scene.translateY - e.height / 2;
+					thisnode.x = event.pageX - TOOL_BAR_WIDTH - scene.translateX - e.width / 2;
+				}
+			});
+			//改变节点数据的文字内容
+			$("#jtopo_textfield").blur(function() {
+				nodes[lsvih.array.getSubByKey({
+					"_id": textfield.attr("data-id")
+				}, nodes)].text = textfield.attr('value');
+				textfield[0].JTopoNode.text = textfield.hide().val();
+			});
+		});
+		/**
+		 * 初始化拖动控件
+		 */
+		function fInitDrag() {
+			//拖动工具箱中的控件到画布中。
+			var draggableElems = document.querySelectorAll('.tool div');
+			var draggies = [];
+			for(var i = 0, len = draggableElems.length; i < len; i++) {
+				var draggableElem = draggableElems[i];
+				var draggie = new Draggabilly(draggableElem);
+				draggies.push(draggie);
+			}
+			//落点在画布内
+			for(var i = 0, len = draggies.length; i < len; i++) {
+				draggies[i].on('dragEnd', function(event, pointer) {
+					x = pointer.pageX;
+					y = pointer.pageY;
+					if(x >= TOOL_BAR_WIDTH && x <= PAGE_WIDTH && y >= 0 && y <= PAGE_HEIGHT) {
+						fAddNode(this.element.getAttribute("data-class"), this.element.parentNode.innerText, x - TOOL_BAR_WIDTH - scene.translateX, y - scene.translateY)
+					}
+					this.element.style.left = "0";
+					this.element.style.top = "29px";
+					return true;
+				});
+			}
+		}
+		//右键菜单模块
+		$("#contextmenu a").click(function() {
+			var text = $(this).text();
+			if(text == '删除该节点') {
+				fDelNode(currentNode);
+				currentNode = null;
+			}
+			if(text == '更改颜色') {
+				currentNode.fillColor = JTopo.util.randomColor();
+			} else if(text == '顺时针旋转') {
+				currentNode.rotate += 0.5;
+			} else if(text == '逆时针旋转') {
+				currentNode.rotate -= 0.5;
+			} else if(text == '放大') {
+				currentNode.scaleX += 0.2;
+				currentNode.scaleY += 0.2;
+			} else if(text == '缩小') {
+				currentNode.scaleX -= 0.2;
+				currentNode.scaleY -= 0.2;
+			}
+			$("#contextmenu").hide();
+		});
+		var TOOL_BAR_WIDTH = 150;
+		var PAGE_WIDTH = window.innerWidth;
+		var PAGE_HEIGHT = window.innerHeight;
+		var tool_margin = 0;
+		var tool_max_margin = 0;
+
 		/**
 		 * 初始化工具栏
 		 * @param {Array} classList
@@ -529,208 +721,84 @@
 		function fAddNode(nodeClass, nodeType, x, y) {
 			var nodenum = nodes.length;
 			var node = new JTopo.Node(nodeType + (nodenum + 1));
-			nodes.push(node);
 			node.setSize(44, 44);
 			node.setImage('./img/' + nodeClass + '/' + nodeType + '.png', true);
 			node.setLocation(x, y);
+			nodes.push(node);
 			scene.add(node);
+			return node;
 		}
-		//每个node都有一个独一无二的id,对应数据中的id
-		var canvas;
-		var scene;
-		var stage;
-		var currentNode;
-		$(document).ready(function() {
-			canvas = document.getElementById('canvas');
-			stage = new JTopo.Stage(canvas);
-			scene = new JTopo.Scene(stage);
-			$(".tool").css({
-				height: PAGE_HEIGHT
-			});
-			$('li').each(function() {
-				tool_max_margin += $(this).height()
-			});
-			$('.tool').mousewheel(function(event, delta) {
-				if(tool_margin + delta > 0) {
-					$('.tool').css({
-						marginTop: 0
-					})
-				} else if(tool_margin + delta < PAGE_HEIGHT - tool_max_margin) {
-					$('.tool').css({
-						marginTop: PAGE_HEIGHT - tool_max_margin
-					})
-				} else {
-					tool_margin += delta;
-					$('.tool').css({
-						marginTop: tool_margin
-					})
-				}
-
-			});
-			canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
-			canvas.height = PAGE_HEIGHT;
-			scene.background = 'img/bg.jpg';
-			for(var i = 0; i < nodes.length; i++) { //遍历已有的节点数组，将节点加入对象中
-				var node = new JTopo.Node(nodes[i].name);
-				node.setLocation(nodes[i].x, nodes[i].y);
-				node.setSize(44, 44);
-				node.setImage('./img/' + nodes[i].class + '/' + nodes[i].type + '.png', true);
-				node._id = nodes[i].id;
-				scene.add(node);
-			}
-			for(var j = 0; j < links.length; j++) { //遍历已有的连线数组
-				var beginNode = scene.childs[fFindNodeSortById(links[j].from)];
-				var endNode = scene.childs[fFindNodeSortById(links[j].to)];
-				var link = new JTopo.Link(beginNode, endNode);
-				scene.add(link);
-			}
-			var beginNode = null;
-			var tempNodeA = new JTopo.Node('tempA');;
-			tempNodeA.setSize(1, 1);
-
-			var tempNodeZ = new JTopo.Node('tempZ');;
-			tempNodeZ.setSize(1, 1);
-
-			var link = new JTopo.Link(tempNodeA, tempNodeZ);
-
-			scene.click(function(e) {
-				if(e.button == 2) {
-					scene.remove(link);
-					beginNode = null;
-					return;
-				}
-				if(e.target != null && e.target instanceof JTopo.Node) {
-					if(beginNode == null) {
-						beginNode = e.target;
-						scene.add(link);
-						tempNodeA.setLocation(e.x, e.y);
-						tempNodeZ.setLocation(e.x, e.y);
-					} else if(beginNode !== e.target) { //当连线的起点与终点不在同一点时创建连线
-						var endNode = e.target;
-						var l = new JTopo.Link(beginNode, endNode);
-						links.push(l); //将新增的连线存入数组
-						scene.add(l);
-						beginNode = null;
-						scene.remove(link);
-					} else {
-						beginNode = null;
-					}
-				} else {
-					scene.remove(link);
-					beginNode = null;
-				}
-			});
-
-			scene.mouseup(function(event) {
-				if(event.target == null) return;
-				if(event.target.elementType == "node") {
-					currentNode = event.target;
-					if(event.which == 3) {
-						$("#contextmenu").css({
-							top: event.pageY,
-							left: event.pageX
-						}).show();
-					}
-
-				}
-			});
-			scene.mousedown(function(e) { //当连线没有连上目标时释放连线
-				$("#contextmenu").hide();
-				if(e.target == null || e.target === beginNode || e.target === link) {
-					scene.remove(link);
-				}
-			});
-			scene.mousemove(function(e) {
-				tempNodeZ.setLocation(e.x, e.y);
-			});
-			//双击更改当前节点文字内容
-			var textfield = $("#jtopo_textfield");
-			scene.dbclick(function(event) {
-				if(event.target == null) return;
-				if(event.target.elementType == "node") {
-					var e = event.target;
-					textfield.css({
-						top: event.pageY,
-						left: event.pageX - e.width / 2
-					}).show().attr('value', e.text).attr('data-id', e.id).focus().select();
-					e.text = "";
-					textfield[0].JTopoNode = e;
-				}
-
-			});
-			//结束拖动更新节点数据的坐标
-			scene.mouseup(function(event) {
-				if(event.target == null) return;
-				if(event.target.elementType == "node") {
-					var e = event.target;
-					var thisnode = nodes[lsvih.array.getSubByKey({
-						"_id": e._id
-					}, nodes)];
-					thisnode.y = event.pageY;
-					thisnode.x = event.pageX - TOOL_BAR_WIDTH - e.width / 2;
-				}
-			});
-			//改变节点数据的文字内容
-			$("#jtopo_textfield").blur(function() {
-				nodes[lsvih.array.getSubByKey({
-					"_id": textfield.attr("data-id")
-				}, nodes)].text = textfield.attr('value');
-				textfield[0].JTopoNode.text = textfield.hide().val();
-			});
-		});
 		/**
-		 * 初始化拖动控件
+		 * 找到父节点
+		 * @param {Object} node
 		 */
-		function fInitDrag() {
-			//拖动工具箱中的控件到画布中。
-			var draggableElems = document.querySelectorAll('.tool div');
-			var draggies = [];
-			for(var i = 0, len = draggableElems.length; i < len; i++) {
-				var draggableElem = draggableElems[i];
-				var draggie = new Draggabilly(draggableElem);
-				draggies.push(draggie);
+		function fFindPrevNodes(node) {
+			var prevNodes = [];
+			var inlinks = node.inLinks;
+			for(var i = 0; i < inlinks; i++) {
+				prevNodes.push(inlinks[i].nodeA);
 			}
-			//落点在画布内
-			for(var i = 0, len = draggies.length; i < len; i++) {
-				draggies[i].on('dragEnd', function(event, pointer) {
-					x = pointer.pageX;
-					y = pointer.pageY;
-					if(x >= TOOL_BAR_WIDTH && x <= PAGE_WIDTH && y >= 0 && y <= PAGE_HEIGHT) {
-						fAddNode(this.element.getAttribute("data-class"), this.element.parentNode.innerText, x - TOOL_BAR_WIDTH - scene.translateX, y - scene.translateY)
-					}
-					this.element.style.left = "0";
-					this.element.style.top = "29px";
-					return true;
-				});
-			}
+			return prevNodes;
 		}
 
-		$("#contextmenu a").click(function() {
-			var text = $(this).text();
-			if(text == '删除该节点') {
-				scene.remove(currentNode);
-				currentNode = null;
+		/**
+		 * 找到子节点
+		 * @param {Object} node
+		 */
+		function fFindNextNodes(node) {
+			var nextNodes = [];
+			var outlinks = node.outLinks;
+			for(var s = 0; s < outlinks.length; s++) {
+				nextNodes.push(outlinks[s]);
 			}
-			if(text == '更改颜色') {
-				currentNode.fillColor = JTopo.util.randomColor();
-			} else if(text == '顺时针旋转') {
-				currentNode.rotate += 0.5;
-			} else if(text == '逆时针旋转') {
-				currentNode.rotate -= 0.5;
-			} else if(text == '放大') {
-				currentNode.scaleX += 0.2;
-				currentNode.scaleY += 0.2;
-			} else if(text == '缩小') {
-				currentNode.scaleX -= 0.2;
-				currentNode.scaleY -= 0.2;
+			return nextNodes;
+		}
+
+		/**
+		 * 删除节点及其有关的连线
+		 * @param {Object} node
+		 */
+		function fDelNode(node) {
+			lsvih.array.delObjByKey({
+				"_id": node._id
+			}, nodes);
+			var outlinks = node.outLinks;
+			var inlinks = node.inLinks;
+			for(var a = 0; a < outlinks.length; a++) {
+				lsvih.array.delObjByKey({
+					"_id": outlinks[a]._id
+				}, links)
 			}
-			$("#contextmenu").hide();
-		});
-		var TOOL_BAR_WIDTH = 150;
-		var PAGE_WIDTH = window.innerWidth;
-		var PAGE_HEIGHT = window.innerHeight;
-		var tool_margin = 0;
-		var tool_max_margin = 0;
+			for(var a = 0; a < inlinks.length; a++) {
+				lsvih.array.delObjByKey({
+					"_id": inlinks[a]._id
+				}, links)
+			}
+			scene.remove(node);
+		}
+
+		/**
+		 * 节点报警
+		 * @param {Object} node
+		 * @param {String} msg
+		 */
+		function fNodeAlert(node, msg) {
+			if(node.alarm){
+				node.alarm += 'msg||"Warrning"';
+			}else{
+				node.alarm = msg||"Warrning";
+			}
+			node.alarmColor = '255,0,0';
+			node.alarmAlpha = 0.9;
+		}
+		
+		/**
+		 * 线报警
+		 * @param {Object} link
+		 */
+		function fLinkAlert(link){
+			link.strokeColor = '255,0,0,';
+		}
 	</script>
 
 </html>
