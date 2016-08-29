@@ -69,7 +69,7 @@
 			margin: 0!important;
 		}
 		
-		#contextmenu {
+		.contextmenu {
 			border: 1px solid #aaa;
 			border-bottom: 0;
 			background: #eee;
@@ -81,14 +81,14 @@
 			z-index: 2;
 		}
 		
-		#contextmenu li a {
+		.contextmenu li a {
 			display: block;
 			padding: 10px;
 			border-bottom: 1px solid #aaa;
 			cursor: pointer;
 		}
 		
-		#contextmenu li a:hover {
+		.contextmenu li a:hover {
 			background: #fff;
 		}
 	</style>
@@ -98,15 +98,9 @@
 		<textarea id="jtopo_textfield" style="display:none;width: 60px;position: absolute;" onkeydown="if(event.keyCode==13)this.blur();"></textarea>
 
 		<canvas id="canvas" height="450px" width="450px"></canvas>
-		<ul id="contextmenu" style="display:none;">
+		<ul id="node" class="contextmenu" style="display:none;">
 			<li>
-				<a>顺时针旋转</a>
-			</li>
-			<li>
-				<a>逆时针旋转</a>
-			</li>
-			<li>
-				<a>更改颜色</a>
+				<a>设置节点属性</a>
 			</li>
 			<li>
 				<a>放大</a>
@@ -118,377 +112,44 @@
 				<a>删除该节点</a>
 			</li>
 		</ul>
+
+		<ul id="link" class="contextmenu" style="display:none;">
+			<li>
+				<a>删除该连线</a>
+			</li>
+		</ul>
+
+		<ul id="container" class="contextmenu" style="display:none;">
+			<li>
+				<a>设置区域属性</a>
+			</li>
+			<li>
+				<a>删除该区域</a>
+			</li>
+		</ul>
 	</body>
 	<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
 	<script type="text/javascript" src="js/topo.js"></script>
 	<script type="text/javascript" src="js/draggabilly.js"></script>
 	<script type="text/javascript" src="js/lsvih.js"></script>
 	<script type="text/javascript" src="js/jquery.mousewheel.js"></script>
+	<script type="text/javascript" src="js/topo_data.js"></script>
 	<script>
-		var classList = ["IT", "ICS", "医疗", "无线电", "通用符号"];
-		//初始数据
-		var type = [{
-			"id": 0,
-			"class": "ICS",
-			"name": "DCS"
-		}, {
-			"id": 1,
-			"class": "ICS",
-			"name": "IDS（入侵检测系统）"
-		}, {
-			"id": 2,
-			"class": "ICS",
-			"name": "IPS"
-		}, {
-			"id": 3,
-			"class": "ICS",
-			"name": "PLC"
-		}, {
-			"id": 4,
-			"class": "ICS",
-			"name": "RTU（远程终端设备）"
-		}, {
-			"id": 5,
-			"class": "ICS",
-			"name": "SCADA服务器或主终端服务单元"
-		}, {
-			"id": 6,
-			"class": "ICS",
-			"name": "人机界面接口（HMI）"
-		}, {
-			"id": 7,
-			"class": "ICS",
-			"name": "前端处理器"
-		}, {
-			"id": 8,
-			"class": "ICS",
-			"name": "功能安全设备系统"
-		}, {
-			"id": 9,
-			"class": "ICS",
-			"name": "单向装置"
-		}, {
-			"id": 10,
-			"class": "ICS",
-			"name": "历史数据库"
-		}, {
-			"id": 11,
-			"class": "ICS",
-			"name": "工程师站"
-		}, {
-			"id": 12,
-			"class": "ICS",
-			"name": "智能电子设备"
-		}, {
-			"id": 13,
-			"class": "ICS",
-			"name": "终端服务器"
-		}, {
-			"id": 14,
-			"class": "ICS",
-			"name": "配置服务器"
-		}, {
-			"id": 15,
-			"class": "IT",
-			"name": "DNS服务器"
-		}, {
-			"id": 16,
-			"class": "IT",
-			"name": "IP phone"
-		}, {
-			"id": 17,
-			"class": "IT",
-			"name": "IP 摄像头"
-		}, {
-			"id": 18,
-			"class": "IT",
-			"name": "PC"
-		}, {
-			"id": 19,
-			"class": "IT",
-			"name": "RFID发射器"
-		}, {
-			"id": 20,
-			"class": "IT",
-			"name": "VLAN交换机"
-		}, {
-			"id": 21,
-			"class": "IT",
-			"name": "VLAN路由器"
-		}, {
-			"id": 22,
-			"class": "IT",
-			"name": "VPN"
-		}, {
-			"id": 23,
-			"class": "IT",
-			"name": "Web Server"
-		}, {
-			"id": 24,
-			"class": "IT",
-			"name": "不间断电源"
-		}, {
-			"id": 25,
-			"class": "IT",
-			"name": "串口交换机"
-		}, {
-			"id": 26,
-			"class": "IT",
-			"name": "互动电视"
-		}, {
-			"id": 27,
-			"class": "IT",
-			"name": "交换机"
-		}, {
-			"id": 28,
-			"class": "IT",
-			"name": "光环网系统"
-		}, {
-			"id": 29,
-			"class": "IT",
-			"name": "公用电话亭（公共信息亭）"
-		}, {
-			"id": 30,
-			"class": "IT",
-			"name": "应用服务器"
-		}, {
-			"id": 31,
-			"class": "IT",
-			"name": "手持无线设备"
-		}, {
-			"id": 32,
-			"class": "IT",
-			"name": "打印机"
-		}, {
-			"id": 33,
-			"class": "IT",
-			"name": "数据库服务器"
-		}, {
-			"id": 34,
-			"class": "IT",
-			"name": "无线Modem"
-		}, {
-			"id": 35,
-			"class": "IT",
-			"name": "无线串口"
-		}, {
-			"id": 36,
-			"class": "IT",
-			"name": "无线网络"
-		}, {
-			"id": 37,
-			"class": "IT",
-			"name": "无线路由器"
-		}, {
-			"id": 38,
-			"class": "IT",
-			"name": "时钟"
-		}, {
-			"id": 39,
-			"class": "IT",
-			"name": "服务器"
-		}, {
-			"id": 40,
-			"class": "IT",
-			"name": "楼宇自动管理系统"
-		}, {
-			"id": 41,
-			"class": "IT",
-			"name": "活动目录服务器"
-		}, {
-			"id": 42,
-			"class": "IT",
-			"name": "电子保安系统"
-		}, {
-			"id": 43,
-			"class": "IT",
-			"name": "网络扫描仪和复印机"
-		}, {
-			"id": 44,
-			"class": "IT",
-			"name": "虚拟机"
-		}, {
-			"id": 45,
-			"class": "IT",
-			"name": "视频会议装置"
-		}, {
-			"id": 46,
-			"class": "IT",
-			"name": "调制解调器"
-		}, {
-			"id": 47,
-			"class": "IT",
-			"name": "路由器"
-		}, {
-			"id": 48,
-			"class": "IT",
-			"name": "远程接入服务器"
-		}, {
-			"id": 49,
-			"class": "IT",
-			"name": "连接加密"
-		}, {
-			"id": 50,
-			"class": "IT",
-			"name": "邮件服务器"
-		}, {
-			"id": 51,
-			"class": "IT",
-			"name": "门禁单元"
-		}, {
-			"id": 52,
-			"class": "IT",
-			"name": "防火墙"
-		}, {
-			"id": 53,
-			"class": "IT",
-			"name": "集线器"
-		}, {
-			"id": 54,
-			"class": "医疗",
-			"name": "CT 扫描机"
-		}, {
-			"id": 55,
-			"class": "医疗",
-			"name": "X射线发生器"
-		}, {
-			"id": 56,
-			"class": "医疗",
-			"name": "内窥镜系统"
-		}, {
-			"id": 57,
-			"class": "医疗",
-			"name": "医用气体系统"
-		}, {
-			"id": 58,
-			"class": "医疗",
-			"name": "婴儿保护远程显示单元"
-		}, {
-			"id": 59,
-			"class": "医疗",
-			"name": "定时定位系统"
-		}, {
-			"id": 60,
-			"class": "医疗",
-			"name": "尿动力学诊断设备"
-		}, {
-			"id": 61,
-			"class": "医疗",
-			"name": "心电图"
-		}, {
-			"id": 62,
-			"class": "医疗",
-			"name": "成像方式与设备"
-		}, {
-			"id": 63,
-			"class": "医疗",
-			"name": "成像服务器"
-		}, {
-			"id": 64,
-			"class": "医疗",
-			"name": "核磁共振成像系统"
-		}, {
-			"id": 65,
-			"class": "医疗",
-			"name": "生理监测系统"
-		}, {
-			"id": 66,
-			"class": "医疗",
-			"name": "紧急医疗服务硬件"
-		}, {
-			"id": 67,
-			"class": "医疗",
-			"name": "线性粒子加速器"
-		}, {
-			"id": 68,
-			"class": "医疗",
-			"name": "脑电图"
-		}, {
-			"id": 69,
-			"class": "医疗",
-			"name": "表皮肌电图"
-		}, {
-			"id": 70,
-			"class": "医疗",
-			"name": "超声波"
-		}, {
-			"id": 71,
-			"class": "医疗",
-			"name": "输液泵"
-		}, {
-			"id": 72,
-			"class": "无线电",
-			"name": "T1回传单元"
-		}, {
-			"id": 73,
-			"class": "无线电",
-			"name": "TDM(时分复用）回传网络"
-		}, {
-			"id": 74,
-			"class": "无线电",
-			"name": "中继器"
-		}, {
-			"id": 75,
-			"class": "无线电",
-			"name": "主站"
-		}, {
-			"id": 76,
-			"class": "无线电",
-			"name": "以太网回传系统"
-		}, {
-			"id": 77,
-			"class": "无线电",
-			"name": "微波回传网络"
-		}, {
-			"id": 78,
-			"class": "无线电",
-			"name": "无线发送接收站"
-		}, {
-			"id": 79,
-			"class": "无线电",
-			"name": "订户"
-		}, {
-			"id": 80,
-			"class": "无线电",
-			"name": "调派控制台"
-		}, {
-			"id": 81,
-			"class": "无线电",
-			"name": "音频交换机"
-		}, {
-			"id": 82,
-			"class": "通用符号",
-			"name": "Web"
-		}, {
-			"id": 83,
-			"class": "通用符号",
-			"name": "伙伴"
-		}, {
-			"id": 84,
-			"class": "通用符号",
-			"name": "区域"
-		}, {
-			"id": 85,
-			"class": "通用符号",
-			"name": "厂商"
-		}, {
-			"id": 86,
-			"class": "通用符号",
-			"name": "未知"
-		}, {
-			"id": 87,
-			"class": "通用符号",
-			"name": "连接点"
-		}, ];
 		var nodes = [];
 		var links = [];
-		fInitTools(classList, type);
-
-		//每个node都有一个独一无二的id,对应数据中的id
+		var containers = [];
 		var canvas;
 		var scene;
 		var stage;
 		var currentNode;
+		var currentLink;
+		var currentContainer;
+		var TOOL_BAR_WIDTH = 150;
+		var PAGE_WIDTH = window.innerWidth;
+		var PAGE_HEIGHT = window.innerHeight;
+		var tool_margin = 0;
+		var tool_max_margin = 0;
+		fInitTools(classList, type);
 		$(document).ready(function() {
 			canvas = document.getElementById('canvas');
 			stage = new JTopo.Stage(canvas);
@@ -562,22 +223,47 @@
 					beginNode = null;
 				}
 			});
-
+			//右键菜单部分
 			scene.mouseup(function(event) {
 				if(event.target == null) return;
-				if(event.target.elementType == "node") {
-					currentNode = event.target;
-					if(event.which == 3) {
-						$("#contextmenu").css({
-							top: event.pageY,
-							left: event.pageX
-						}).show();
-					}
-
+				switch(event.target.elementType) {
+					case 'node':
+						currentNode = event.target;
+						if(event.which == 3) {
+							$("#node").css({
+								top: event.pageY,
+								left: event.pageX
+							}).show();
+						}
+						break;
+					case 'link':
+						currentLink = event.target;
+						if(event.which == 3) {
+							$("#link").css({
+								top: event.pageY,
+								left: event.pageX
+							}).show();
+						}
+						break;
+					case 'container':
+						currentContainer = event.target;
+						if(event.which == 3) {
+							$("#container").css({
+								top: event.pageY,
+								left: event.pageX
+							}).show();
+						}
+						break;
+					default:
+						return;
+						break;
 				}
+
 			});
 			scene.mousedown(function(e) { //当连线没有连上目标时释放连线
-				$("#contextmenu").hide();
+				$("#node").hide();
+				$("#link").hide();
+				$("#container").hide();
 				if(e.target == null || e.target === beginNode || e.target === link) {
 					scene.remove(link);
 				}
@@ -635,18 +321,12 @@
 			}
 		}
 		//右键菜单模块
-		$("#contextmenu a").click(function() {
+		//节点右键
+		$("#node a").click(function() {
 			var text = $(this).text();
 			if(text == '删除该节点') {
 				fDelNode(currentNode);
 				currentNode = null;
-			}
-			if(text == '更改颜色') {
-				currentNode.fillColor = JTopo.util.randomColor();
-			} else if(text == '顺时针旋转') {
-				currentNode.rotate += 0.5;
-			} else if(text == '逆时针旋转') {
-				currentNode.rotate -= 0.5;
 			} else if(text == '放大') {
 				currentNode.scaleX += 0.2;
 				currentNode.scaleY += 0.2;
@@ -654,13 +334,27 @@
 				currentNode.scaleX -= 0.2;
 				currentNode.scaleY -= 0.2;
 			}
-			$("#contextmenu").hide();
+			$("#node").hide();
 		});
-		var TOOL_BAR_WIDTH = 150;
-		var PAGE_WIDTH = window.innerWidth;
-		var PAGE_HEIGHT = window.innerHeight;
-		var tool_margin = 0;
-		var tool_max_margin = 0;
+		//线右键
+		$("#link a").click(function() {
+			var text = $(this).text();
+			if(text == '删除该连线') {
+				fDelLink(currentLink);
+				currentNode = null;
+			}
+			$("#link").hide();
+		});
+
+		//区域右键
+		$("#container a").click(function() {
+			var text = $(this).text();
+			if(text == '删除该区域') {
+				fDelContainer(currentContainer);
+				currentContainer = null;
+			}
+			$("#container").hide();
+		});
 
 		/**
 		 * 初始化工具栏
@@ -722,8 +416,8 @@
 		function fFindPrevNodes(node) {
 			var prevNodes = [];
 			var inlinks = node.inLinks;
-			for(var i = 0; i < inlinks; i++) {
-				prevNodes.push(inlinks[i].nodeA);
+			for(var n = 0; n < inlinks.length; n++) {
+				prevNodes.push(inlinks[n].nodeA);
 			}
 			return prevNodes;
 		}
@@ -736,7 +430,7 @@
 			var nextNodes = [];
 			var outlinks = node.outLinks;
 			for(var s = 0; s < outlinks.length; s++) {
-				nextNodes.push(outlinks[s]);
+				nextNodes.push(outlinks[s].nodeZ);
 			}
 			return nextNodes;
 		}
@@ -763,6 +457,27 @@
 			}
 			scene.remove(node);
 		}
+		/**
+		 * 删除连线
+		 * @param {Object} link
+		 */
+		function fDelLink(link) {
+			lsvih.array.delObjByKey({
+				"_id": link._id
+			}, links)
+			scene.remove(link);
+		}
+
+		/**
+		 * 删除区域
+		 * @param {Object} container
+		 */
+		function fDelContainer(container) {
+			lsvih.array.delObjByKey({
+				"_id": container._id
+			}, containers)
+			scene.remove(container);
+		}
 
 		/**
 		 * 节点报警
@@ -770,21 +485,21 @@
 		 * @param {String} msg
 		 */
 		function fNodeAlert(node, msg) {
-			if(node.alarm){
+			if(node.alarm) {
 				node.alarm += 'msg||"Warrning"';
-			}else{
-				node.alarm = msg||"Warrning";
+			} else {
+				node.alarm = msg || "Warrning";
 			}
 			node.alarmColor = '255,0,0';
 			node.alarmAlpha = 0.9;
 		}
-		
+
 		/**
 		 * 线报警
 		 * @param {Object} link
 		 */
-		function fLinkAlert(link){
-			link.strokeColor = '255,0,0,';
+		function fLinkAlert(link) {
+			link.strokeColor = '255,0,0';
 		}
 	</script>
 
