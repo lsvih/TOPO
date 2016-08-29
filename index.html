@@ -600,19 +600,6 @@
 				}
 
 			});
-			//结束拖动更新节点数据的坐标
-			//限制条件，右键不更新坐标
-			scene.mouseup(function(event) {
-				if(event.target == null || event.which == 3) return;
-				if(event.target.elementType == "node") {
-					var e = event.target;
-					var thisnode = nodes[lsvih.array.getSubByKey({
-						"_id": e._id
-					}, nodes)];
-					thisnode.y = event.pageY - scene.translateY - e.height / 2;
-					thisnode.x = event.pageX - TOOL_BAR_WIDTH - scene.translateX - e.width / 2;
-				}
-			});
 			//改变节点数据的文字内容
 			$("#jtopo_textfield").blur(function() {
 				nodes[lsvih.array.getSubByKey({
