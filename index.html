@@ -121,14 +121,45 @@
 			z-index: 99;
 		}
 		/*遮罩*/
-		.mask{
+		
+		.mask {
 			position: absolute;
 			top: 0;
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background-color: rgba(0,0,0,.4);
+			background-color: rgba(0, 0, 0, .4);
 			display: none;
+		}
+		
+		.properties {
+			position: absolute;
+			display: none;
+			top: 10%;
+			left: 50%;
+			margin-left: -150px;
+			width: 300px;
+			z-index: 999;
+			background-color: #ddd;
+			padding: 30px;
+			line-height: 35px;
+		}
+		
+		.properties div input {
+			float: right;
+			height: 21px;
+			margin-top: 7px;
+		}
+		
+		.properties span {
+			display: block;
+			width: 100%;
+			margin-top: 20px;
+			text-align: center;
+		}
+		
+		.node-properties {
+			height: 500px;
 		}
 	</style>
 
@@ -170,6 +201,22 @@
 				<a>删除该区域</a>
 			</li>
 		</ul>
+
+		<div class="properties node-properties">
+			<div>节点ID:<input class="id" disabled/></div>
+			<div>资产IP*:<input class="ip" /></div>
+			<div>资产名:<input class="name" /></div>
+			<!--<div>可见性*:</div>-->
+			<div>资产类型*:<input class="type" /></div>
+			<div>资产厂商*:<input class="firms" /></div>
+			<div>资产系列名*:<input class="series-name" /></div>
+			<div>资产型号:<input class="version" /></div>
+			<div>资产区域*:<input class="area" /></div>
+			<div>所处子网名:<input class="child-name" /></div>
+			<div>资产重要性:<input class="important" /></div>
+			<div>资产描述:<input class="description" /></div>
+			<span><button onclick="fSaveNodeInfo(this)">保存</button><button onclick="fCancel(this)">取消</button></span>
+		</div>
 	</body>
 	<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
 	<script type="text/javascript" src="js/topo.js"></script>
@@ -258,7 +305,7 @@
 					} else if(beginNode !== e.target) { //当连线的起点与终点不在同一点时创建连线
 						var endNode = e.target;
 						var l = new JTopo.Link(beginNode, endNode);
-						l.arrowsRadius = 15;
+						//						l.arrowsRadius = 15;//带箭头的线
 						links.push(l); //将新增的连线存入数组
 						scene.add(l);
 						beginNode = null;
@@ -380,9 +427,39 @@
 			} else if(text == '缩小') {
 				currentNode.scaleX -= 0.2;
 				currentNode.scaleY -= 0.2;
+			} else if(text == '设置节点属性') {
+				$('.mask').css({
+					zIndex: 11
+				}).show();
+				$('.node-properties').show();
+				$('.node-properties .id').attr("value", currentNode._id);
+				$('.node-properties .name').attr("value", currentNode.text);
+				if(!currentNode.custom >> 0) {
+					currentNode.custom = {
+						"ip": "",
+						"type": "",
+						"firms": "",
+						"series-name": "",
+						"version": "",
+						"area": "",
+						"child-name": "",
+						"important": "",
+						"description": ""
+					}
+				}
+				$('.node-properties .ip').attr("value", currentNode.custom.ip);
+				$('.node-properties .type').attr("value", currentNode.custom.type);
+				$('.node-properties .series-name').attr("value", currentNode.custom["series-name"]);
+				$('.node-properties .version').attr("value", currentNode.custom.version);
+				$('.node-properties .area').attr("value", currentNode.custom.area);
+				$('.node-properties .child-name').attr("value", currentNode.custom["child-name"]);
+				$('.node-properties .important').attr("value", currentNode.custom.important);
+				$('.node-properties .description').attr("value", currentNode.custom.description);
+				$('.node-properties .firms').attr("value", currentNode.custom.firems);
 			}
 			$("#node").hide();
 		});
+
 		//线右键
 		$("#link a").click(function() {
 			var text = $(this).text();
@@ -404,6 +481,31 @@
 		});
 
 		/**
+		 * 关闭属性窗口
+		 */
+		function fCancel(thisobj) {
+			thisobj.parentNode.parentNode.style.display = "none";
+			$(".mask").css({
+				zIndex: 1
+			}).hide();
+		}
+
+		function fSaveNodeInfo(thisobj) {
+			currentNode.custom.ip = $('.node-properties .ip').attr("value");
+			currentNode.custom.type = $('.node-properties .type').attr("value");
+			currentNode.custom["series-name"] = $('.node-properties .series-name').attr("value");
+			currentNode.custom.version = $('.node-properties .version').attr("value");
+			currentNode.custom.area = $('.node-properties .area').attr("value");
+			currentNode.custom["child-name"] = $('.node-properties .child-name').attr("value");
+			currentNode.custom.important = $('.node-properties .important').attr("value");
+			currentNode.custom.description = $('.node-properties .description').attr("value");
+			currentNode.custom.firems = $('.node-properties .firms').attr("value");
+			currentNode.text = $('.node-properties .name').attr("value");
+			fIsNodeInfoDone(currentContainer);
+			fCancel(thisobj);
+		}
+
+		/**
 		 * 初始化工具栏
 		 * @param {Array} classList
 		 * @param {Array} typeList
@@ -423,7 +525,6 @@
 				}
 			}
 			fInitDrag();
-
 		}
 
 		/**
@@ -454,13 +555,21 @@
 			node.setLocation(x, y);
 			nodes.push(node);
 			scene.add(node);
+			fIsNodeInfoDone(node);
 			return node;
 		}
 
-		function fAddContainer(x, y,h,w) {
+		/**
+		 * 增加一个区域
+		 * @param {Number} x
+		 * @param {Number} y
+		 * @param {Number} h
+		 * @param {Number} w
+		 */
+		function fAddContainer(x, y, h, w) {
 			var container = new JTopo.Container();
-			container.x = x- scene.translateX;
-			container.y = y- scene.translateY;
+			container.x = x - scene.translateX;
+			container.y = y - scene.translateY;
 			container.height = h;
 			container.width = w;
 			containers.push(container);
@@ -538,16 +647,27 @@
 		}
 
 		/**
+		 * 判断某个节点信息是否填写完成
+		 * @param {Object} node
+		 */
+		function fIsNodeInfoDone(node) {
+			if(!node.custom >> 0 || !node.custom.ip >> 0 || !node.custom.firms >> 0 || !node.custom["series-name"] >> 0 || !node.custom.version >> 0 || !node.custom.area >> 0) {
+				fNodeAlert(node, "信息未填写完全");
+			} else {
+				node.alarm = null;
+			}
+		}
+
+		/**
 		 * 节点报警
 		 * @param {Object} node
 		 * @param {String} msg
 		 */
 		function fNodeAlert(node, msg) {
-			if(node.alarm) {
-				node.alarm += 'msg||"Warrning"';
-			} else {
-				node.alarm = msg || "Warrning";
+			if(!node.alarm) {
+				node.alarm = null;
 			}
+			node.alarm = msg || "Warrning";
 			node.alarmColor = '255,0,0';
 			node.alarmAlpha = 0.9;
 		}
@@ -560,6 +680,21 @@
 			link.strokeColor = '255,0,0';
 		}
 
+		/**
+		 * 判断一个节点在哪个区域内
+		 * @param {Object} node
+		 */
+		function fNodeInWhichContainer(node) {
+			for(var z = 0; z < containers.length; z++) {
+				var x = containers[z].x;
+				var y = containers[z].y;
+				var w = containers[z].width;
+				var h = containers[z].height;
+				if(node.x >= x && node.x <= x + h && node.y >= y && node.y <= y + w) return containers[z];
+			}
+			return null;
+		}
+
 		//点击绘制按钮开启绘制区域功能
 		function fSelectTool(obj) {
 			if(lsvih.dom.hasClass(obj, "active")) {
@@ -569,6 +704,7 @@
 					lsvih.dom.removeClass(obj, "active");
 				} //关闭区域绘制功能
 			} else {
+				_fRemoveAllActive();
 				lsvih.dom.addClass(obj, "active");
 				if(lsvih.dom.hasClass(obj, "add-container")) {
 					$("#painter").show();
@@ -576,10 +712,11 @@
 					fRect();
 				} //开启区域绘制功能
 			}
-
+			/**
+			 * 取消所有选项的激活状态
+			 */
 			function _fRemoveAllActive() {
-				$(".top_tool_bar").children("div").hide();
-
+				$(".top_tool_bar").children("div").removeClass("active");
 			}
 		}
 		/**
@@ -606,8 +743,9 @@
 				var h = eY - sY; //矩形的高
 				onpaint = 0;
 				paint_can.strokeRect(sX, sY, w, h);
-				fAddContainer(sX,sY,h,w);
+				fAddContainer(sX, sY, h, w);
 				paint_can.clearRect(0, 0, PAGE_WIDTH - TOOL_BAR_WIDTH, PAGE_HEIGHT - TOOL_BAR_HEIGHT);
+				$(".add-container").trigger("click");
 			}
 			paint_canvas.onmousemove = function(e) {
 				if(onpaint) {
@@ -623,4 +761,5 @@
 			paint_canvas.onmouseout = null;
 		}
 	</script>
+
 </html>
