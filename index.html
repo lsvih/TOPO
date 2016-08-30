@@ -120,12 +120,23 @@
 			display: none;
 			z-index: 99;
 		}
+		/*遮罩*/
+		.mask{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0,0,0,.4);
+			display: none;
+		}
 	</style>
 
 	<body>
 		<div class="top_tool_bar">
 			<div class="add-container" onclick="fSelectTool(this)"><img src="icon/folder.png" height="30px" width="30px">绘制区域</div>
 		</div>
+		<div class="mask"></div>
 		<div class="tool"></div>
 		<textarea id="jtopo_textfield" style="display:none;width: 60px;position: absolute;" onkeydown="if(event.keyCode==13)this.blur();"></textarea>
 		<canvas id="painter" height="450px" width="450"></canvas>
@@ -187,7 +198,6 @@
 		paint_canvas = document.getElementById('painter');
 		paint_can = paint_canvas.getContext('2d');
 		$(document).ready(function() {
-
 			stage = new JTopo.Stage(canvas);
 			scene = new JTopo.Scene(stage);
 			$(".tool").css({
@@ -555,13 +565,15 @@
 			if(lsvih.dom.hasClass(obj, "active")) {
 				if(lsvih.dom.hasClass(obj, "add-container")) {
 					$("#painter").hide();
+					$(".mask").hide();
 					lsvih.dom.removeClass(obj, "active");
 				} //关闭区域绘制功能
 			} else {
 				lsvih.dom.addClass(obj, "active");
 				if(lsvih.dom.hasClass(obj, "add-container")) {
 					$("#painter").show();
-					dRectFill();
+					$(".mask").show();
+					fRect();
 				} //开启区域绘制功能
 			}
 
@@ -570,8 +582,10 @@
 
 			}
 		}
-
-		function dRectFill() {
+		/**
+		 * 随着鼠标画长方形，并将长方形的数据转换为区域对象
+		 */
+		function fRect() {
 			paint_can.strokeStyle = "#fff";
 			var sX = 0; //内部的“全局标量”
 			var sY = 0;
