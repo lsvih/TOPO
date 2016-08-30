@@ -113,7 +113,7 @@
 			background-color: #fff;
 		}
 		
-		#pianter {
+		#painter {
 			position: absolute;
 			top: 50px;
 			left: 150px;
@@ -128,7 +128,7 @@
 		</div>
 		<div class="tool"></div>
 		<textarea id="jtopo_textfield" style="display:none;width: 60px;position: absolute;" onkeydown="if(event.keyCode==13)this.blur();"></textarea>
-		<canvas id="pianter" height="450px" width="450"></canvas>
+		<canvas id="painter" height="450px" width="450"></canvas>
 		<canvas id="canvas" height="450px" width="450px"></canvas>
 		<ul id="node" class="contextmenu" style="display:none;">
 			<li>
@@ -184,8 +184,8 @@
 		var tool_max_margin = 0;
 		fInitTools(classList, type);
 		canvas = document.getElementById('canvas');
-		piant_canvas = document.getElementById('pianter');
-		piant_can = piant_canvas.getContext('2d');
+		paint_canvas = document.getElementById('painter');
+		paint_can = paint_canvas.getContext('2d');
 		$(document).ready(function() {
 
 			stage = new JTopo.Stage(canvas);
@@ -215,8 +215,8 @@
 			});
 			canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
 			canvas.height = PAGE_HEIGHT - TOOL_BAR_HEIGHT;
-			piant_canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
-			piant_canvas.height = PAGE_HEIGHT - TOOL_BAR_HEIGHT;
+			paint_canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
+			paint_canvas.height = PAGE_HEIGHT - TOOL_BAR_HEIGHT;
 			scene.background = 'img/bg.jpg';
 			for(var i = 0; i < nodes.length; i++) { //遍历已有的节点数组，将节点加入对象中
 				scene.add(nodes);
@@ -554,13 +554,13 @@
 		function fSelectTool(obj) {
 			if(lsvih.dom.hasClass(obj, "active")) {
 				if(lsvih.dom.hasClass(obj, "add-container")) {
-					$("#pianter").hide();
+					$("#painter").hide();
 					lsvih.dom.removeClass(obj, "active");
 				} //关闭区域绘制功能
 			} else {
 				lsvih.dom.addClass(obj, "active");
 				if(lsvih.dom.hasClass(obj, "add-container")) {
-					$("#pianter").show();
+					$("#painter").show();
 					dRectFill();
 				} //开启区域绘制功能
 			}
@@ -572,42 +572,41 @@
 		}
 
 		function dRectFill() {
-			piant_can.strokeStyle = "#fff";
+			paint_can.strokeStyle = "#fff";
 			var sX = 0; //内部的“全局标量”
 			var sY = 0;
-			var onPiant = 0;
+			var onpaint = 0;
 			//画实心矩形，鼠标按下时，当前鼠标位置为矩形的左上角
-			piant_canvas.onmousedown = function(e) {
+			paint_canvas.onmousedown = function(e) {
 					e = window.event || e;
-					onPiant = 1;
+					onpaint = 1;
 					sX = e.pageX - this.offsetLeft;
 					sY = e.pageY - this.offsetTop;
 				}
 				//画实心矩形，鼠标抬起时，当前鼠标位置为矩形的右下角
-			piant_canvas.onmouseup = function(e) {
+			paint_canvas.onmouseup = function(e) {
 				e = window.event || e;
 				var eX = e.pageX - this.offsetLeft;
 				var eY = e.pageY - this.offsetTop;
 				var w = eX - sX; //矩形的宽
 				var h = eY - sY; //矩形的高
-				onPiant = 0;
-				piant_can.strokeRect(sX, sY, w, h);
+				onpaint = 0;
+				paint_can.strokeRect(sX, sY, w, h);
 				fAddContainer(sX,sY,h,w);
-				piant_can.clearRect(0, 0, PAGE_WIDTH - TOOL_BAR_WIDTH, PAGE_HEIGHT - TOOL_BAR_HEIGHT);
+				paint_can.clearRect(0, 0, PAGE_WIDTH - TOOL_BAR_WIDTH, PAGE_HEIGHT - TOOL_BAR_HEIGHT);
 			}
-			piant_canvas.onmousemove = function(e) {
-				if(onPiant) {
+			paint_canvas.onmousemove = function(e) {
+				if(onpaint) {
 					e = window.event || e;
 					var eX = e.pageX - this.offsetLeft;
 					var eY = e.pageY - this.offsetTop;
 					var w = eX - sX; //矩形的宽
 					var h = eY - sY; //矩形的高
-					piant_can.clearRect(0, 0, PAGE_WIDTH - TOOL_BAR_WIDTH, PAGE_HEIGHT - TOOL_BAR_HEIGHT);
-					piant_can.strokeRect(sX, sY, w, h);
+					paint_can.clearRect(0, 0, PAGE_WIDTH - TOOL_BAR_WIDTH, PAGE_HEIGHT - TOOL_BAR_HEIGHT);
+					paint_can.strokeRect(sX, sY, w, h);
 				}
-
 			}
-			piant_canvas.onmouseout = null;
+			paint_canvas.onmouseout = null;
 		}
 	</script>
 </html>
