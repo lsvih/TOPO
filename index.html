@@ -431,7 +431,6 @@
 				$('.mask').css({
 					zIndex: 11
 				}).show();
-				$('.node-properties').show();
 				$('.node-properties .id').attr("value", currentNode._id);
 				$('.node-properties .name').attr("value", currentNode.text);
 				if(!currentNode.custom >> 0) {
@@ -456,6 +455,7 @@
 				$('.node-properties .important').attr("value", currentNode.custom.important);
 				$('.node-properties .description').attr("value", currentNode.custom.description);
 				$('.node-properties .firms').attr("value", currentNode.custom.firems);
+				$('.node-properties').show();
 			}
 			$("#node").hide();
 		});
@@ -490,6 +490,9 @@
 			}).hide();
 		}
 
+		/**
+		 * 保存节点属性信息
+		 */
 		function fSaveNodeInfo(thisobj) {
 			currentNode.custom.ip = $('.node-properties .ip').attr("value");
 			currentNode.custom.type = $('.node-properties .type').attr("value");
@@ -499,9 +502,9 @@
 			currentNode.custom["child-name"] = $('.node-properties .child-name').attr("value");
 			currentNode.custom.important = $('.node-properties .important').attr("value");
 			currentNode.custom.description = $('.node-properties .description').attr("value");
-			currentNode.custom.firems = $('.node-properties .firms').attr("value");
+			currentNode.custom.firms = $('.node-properties .firms').attr("value");
 			currentNode.text = $('.node-properties .name').attr("value");
-			fIsNodeInfoDone(currentContainer);
+			fIsNodeInfoDone(currentNode);
 			fCancel(thisobj);
 		}
 
@@ -603,6 +606,28 @@
 		}
 
 		/**
+		 * 找到两个节点之间连接的线
+		 * @param {Object} nodeA
+		 * @param {Object} nodeB
+		 */
+		function fFindLinkByNodes(nodeA, nodeB) {
+			var links = [];
+			if(nodeA.inLinks == null) nodeA.inLinks = [];
+			if(nodeA.outLinks == null) nodeA.outLinks = [];
+			if(nodeB.inLinks == null) nodeB.inLinks = [];
+			if(nodeB.outLinks == null) nodeB.outLinks = [];
+			if((nodeA.inLinks.length == 0 && nodeA.outLinks.length == 0) || (nodeB.inLinks.length == 0 && nodeB.outLinks.length == 0)) {} else {
+				for(var s = 0; s < nodeA.inLinks.length; s++) {
+					if(nodeA.inLinks[s].nodeA._id == nodeB._id) links.push(nodeA.inLinks[s]);
+				}
+				for(var w = 0; w < nodeA.outLinks.length; w++) {
+					if(nodeA.outLinks[w].nodeZ._id == nodeB._id) links.push(nodeA.outLinks[w]);
+				}
+			}
+			return links;
+		}
+
+		/**
 		 * 删除节点及其有关的连线
 		 * @param {Object} node
 		 */
@@ -651,7 +676,11 @@
 		 * @param {Object} node
 		 */
 		function fIsNodeInfoDone(node) {
-			if(!node.custom >> 0 || !node.custom.ip >> 0 || !node.custom.firms >> 0 || !node.custom["series-name"] >> 0 || !node.custom.version >> 0 || !node.custom.area >> 0) {
+			if(node.custom == undefined) {
+				fNodeAlert(node, "信息未填写完全")
+				return;
+			}
+			if(node.custom.ip == "" || node.custom.firms == "" || node.custom["series-name"] == "" || node.custom.area == "") {
 				fNodeAlert(node, "信息未填写完全");
 			} else {
 				node.alarm = null;
