@@ -67,6 +67,7 @@
 			<div>区域描述:<input class="description" /></div>
 			<!--<div>可见性*:</div>-->
 			<div>区域重要性*:<input class="important" /></div>
+			<div>SAL*:<input class="sal" /></div>
 			<div>区域负责人:<input class="person" /></div>
 			<div>区域负责人联系电话:<input class="phone" /></div>
 			<span><button onclick="fSaveContainerInfo(this)">保存</button><button onclick="fCancel(this)">取消</button></span>
@@ -79,6 +80,7 @@
 	<script type="text/javascript" src="js/jquery.mousewheel.js"></script>
 	<script type="text/javascript" src="js/topo_data.js"></script>
 	<script>
+		var ALARM = true;
 		var nodes = [];
 		var links = [];
 		var containers = [];
@@ -108,6 +110,7 @@
 				tool_max_margin += $(this).height()
 			});
 			$('.tool').mousewheel(function(event, delta) {
+				var delta = delta * 5; //调速
 				if(tool_margin + delta > 0) {
 					$('.tool').css({
 						marginTop: 0
@@ -341,13 +344,15 @@
 						"description": "",
 						"important": "",
 						"person": "",
-						"phone": ""
+						"phone": "",
+						"SAL": ""
 					}
 				}
 				$('.container-properties .description').attr("value", currentContainer.custom.description);
 				$('.container-properties .important').attr("value", currentContainer.custom.important);
 				$('.container-properties .person').attr("value", currentContainer.custom.person);
 				$('.container-properties .phone').attr("value", currentContainer.custom.phone);
+				$('.container-properties .sal').attr("value", currentContainer.custom.SAL);
 				$('.container-properties').show();
 			}
 			$("#container").hide();
@@ -390,6 +395,7 @@
 			currentContainer.custom.important = $('.container-properties .important').attr("value");
 			currentContainer.custom.person = $('.container-properties .person').attr("value");
 			currentContainer.custom.phone = $('.container-properties .phone').attr("value");
+			currentContainer.custom.SAL = $('.container-properties .sal').attr("value");
 			fIsContainerInfoDone(currentContainer);
 			fCancel(thisobj);
 		}
@@ -579,7 +585,8 @@
 				fContainerAlert(container);
 				return;
 			}
-			if(container.text == "" || container.custom.important == "") {
+			var reg = new RegExp("^[0-9]*$")
+			if(container.text == "" || container.custom.important == "" || container.custom.SAL == "" || !reg.test(container.custom.SAL)) {
 				fContainerAlert(container);
 			} else {
 				fContainerCancelAlert(container);
@@ -695,6 +702,71 @@
 				}
 			}
 			paint_canvas.onmouseout = null;
+		}
+
+		/**
+		 * 遍历检查所有节点是否符合规则，不符合规则的报警
+		 */
+		function fCheckNode() {
+			if(!ALARM) return;
+			for(var i = 0; i < nodes.length; i++) {
+				try {
+					var prevNode = fFindPrevNodes(nodes[i])[0];
+					var nextNode = fFindNextNodes(nodes[i])[0];
+					//设备为单向设备，检测该设备的前节点与后节点，如果前节点所在区域SAL小于后节点的区域SAL，则报警“流量方向SAL报警”,报警对象:该单向设备节点
+					if(nodes[i].nodetype == "单向设备") {
+						if(Number(fNodeInWhichContainer(prevNode).custom.SAL) < Number(fNodeInWhichContainer(nextNode).custom.SAL)) {
+							fNodeAlert(nodes[i], "流量方向SAL报警");
+						} else {
+							nodes[i].alarm = null;
+							fIsNodeInfoDone(nodes[i]);
+						}
+					} else if(nodes[i].nodetype == "VLAN组件") {
+						//TODO
+						//VLAN组件是连接不同子网分区的组件，如果它连接区域的SAL等级不一样，必须要有防火墙，否则报警"缺少防火墙",报警对象:该VLAN组件
+
+						if(!_IsFireWall(prevNode) || !_IsFireWall(nextNode)) {
+							if(fNodeInWhichContainer(prevNode) == null || fNodeInWhichContainer(nextNode) == null) {
+								fNodeAlert(nodes[i], "错误的VLAN组件");
+							} else {
+								if(Number(fNodeInWhichContainer(prevNode).custom.SAL) != Number(fNodeInWhichContainer(nextNode).custom.SAL)) {
+									fNodeAlert(nodes[i], "缺少防火墙");
+								} else {
+									nodes[i].alarm = null;
+									fIsNodeInfoDone(nodes[i]);
+								}
+							}
+						} else if(_IsFireWall(prevNode) && _IsFireWall(nextNode)) {
+							nodes[i].alarm = null;
+							fIsNodeInfoDone(nodes[i]);
+						} else {
+							fNodeAlert(nodes[i], "缺少防火墙");
+						}
+					} else if(nodes[i].nodetype == "")
+				} catch(e) {
+					console.log(e)
+				}
+				if(fNodeInWhichContainer(nodes[i]) != null) {
+					var nextNodes = fFindNextNodes(nexts[i]);
+					var prevNodes = fFindPrevNodes(nexts[i]);
+					var alarmLinks = [];
+					for(var s =0 ;s<nextNodes.length;s++){
+						if(!fNodeInWhichContainer(nextNodes[s])){
+							if(Number(fNodeInWhichContainer(prevNode).custom.SAL) != Number(fNodeInWhichContainer(nextNode).custom.SAL)){
+								//TODO	
+							}
+						}
+					}
+					for(var k =0;k<prevNodes.length;k++){
+						
+					}
+				}
+			}
+
+			function _IsFireWall(node) {
+				var nodetype = decodeURIComponent(node.image.src).split(".png")[0].substr(-3);
+				return /防火墙/.test(nodetype);
+			}
 		}
 	</script>
 
