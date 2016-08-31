@@ -1,0 +1,157 @@
+body {
+	margin: 50px 0 0;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.tool {
+	font-size: 12px;
+	height: 450px;
+	width: 150px;
+	text-align: center;
+}
+
+.tool span {
+	display: inline-block;
+	position: relative;
+	height: 80px;
+	width: 50px;
+	margin: 15px;
+	background-color: rgba(255, 255, 255, 0.5);
+}
+
+.tool div {
+	position: absolute;
+	top: 29px;
+	width: 100%;
+	text-align: center;
+	height: 32px;
+	z-index: 9;
+}
+
+#canvas {
+	position: absolute;
+	left: 150px;
+	top: 50px;
+	z-index: 1;
+}
+
+#jtopo_textfield {
+	z-index: 999999;
+}
+
+li {
+	list-style-type: none;
+}
+
+.class-name {
+	height: 20px!important;
+	background-color: #000!important;
+	color: #fff!important;
+	font-size: 20px;
+	font-weight: bold;
+	width: 100%!important;
+	margin: 0!important;
+}
+
+.contextmenu {
+	border: 1px solid #aaa;
+	border-bottom: 0;
+	background: #eee;
+	position: absolute;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: none;
+	z-index: 2;
+}
+
+.contextmenu li a {
+	display: block;
+	padding: 10px;
+	border-bottom: 1px solid #aaa;
+	cursor: pointer;
+}
+
+.contextmenu li a:hover {
+	background: #fff;
+}
+
+.top_tool_bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 50px;
+	background-color: #ddd;
+	padding: 0 20px;
+	z-index: 10;
+}
+
+.top_tool_bar div {
+	vertical-align: middle;
+	padding: 5px;
+	width: 100px;
+}
+
+.top_tool_bar div.active {
+	background-color: #fff;
+}
+
+#painter {
+	position: absolute;
+	top: 50px;
+	left: 150px;
+	display: none;
+	z-index: 99;
+}
+
+
+/*遮罩*/
+
+.mask {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, .4);
+	display: none;
+}
+
+.properties {
+	position: absolute;
+	display: none;
+	top: 10%;
+	left: 50%;
+	margin-left: -150px;
+	width: 300px;
+	z-index: 999;
+	background-color: #ddd;
+	padding: 30px;
+	line-height: 35px;
+}
+
+.properties div input {
+	float: right;
+	height: 21px;
+	margin-top: 7px;
+}
+
+.properties span {
+	display: block;
+	width: 100%;
+	margin-top: 20px;
+	text-align: center;
+}
+
+.node-properties {
+	height: 500px;
+}

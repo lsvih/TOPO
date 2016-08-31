@@ -5,163 +5,7 @@
 		<meta charset="utf-8" />
 		<title></title>
 	</head>
-	<style>
-		body {
-			margin: 50px 0 0;
-			-webkit-touch-callout: none;
-			-webkit-user-select: none;
-			-khtml-user-select: none;
-			-moz-user-select: none;
-			-ms-user-select: none;
-			user-select: none;
-			width: 100%;
-			height: 100%;
-			overflow: hidden;
-		}
-		
-		.tool {
-			font-size: 12px;
-			height: 450px;
-			width: 150px;
-			text-align: center;
-		}
-		
-		.tool span {
-			display: inline-block;
-			position: relative;
-			height: 80px;
-			width: 50px;
-			margin: 15px;
-			background-color: rgba(255, 255, 255, 0.5);
-		}
-		
-		.tool div {
-			position: absolute;
-			top: 29px;
-			width: 100%;
-			text-align: center;
-			height: 32px;
-			z-index: 9;
-		}
-		
-		#canvas {
-			position: absolute;
-			left: 150px;
-			top: 50px;
-			z-index: 1;
-		}
-		
-		#jtopo_textfield {
-			z-index: 999999;
-		}
-		
-		li {
-			list-style-type: none;
-		}
-		
-		.class-name {
-			height: 20px!important;
-			background-color: #000!important;
-			color: #fff!important;
-			font-size: 20px;
-			font-weight: bold;
-			width: 100%!important;
-			margin: 0!important;
-		}
-		
-		.contextmenu {
-			border: 1px solid #aaa;
-			border-bottom: 0;
-			background: #eee;
-			position: absolute;
-			list-style: none;
-			margin: 0;
-			padding: 0;
-			display: none;
-			z-index: 2;
-		}
-		
-		.contextmenu li a {
-			display: block;
-			padding: 10px;
-			border-bottom: 1px solid #aaa;
-			cursor: pointer;
-		}
-		
-		.contextmenu li a:hover {
-			background: #fff;
-		}
-		
-		.top_tool_bar {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 50px;
-			background-color: #ddd;
-			padding: 0 20px;
-			z-index: 10;
-		}
-		
-		.top_tool_bar div {
-			vertical-align: middle;
-			padding: 5px;
-			width: 100px;
-		}
-		
-		.top_tool_bar div.active {
-			background-color: #fff;
-		}
-		
-		#painter {
-			position: absolute;
-			top: 50px;
-			left: 150px;
-			display: none;
-			z-index: 99;
-		}
-		/*遮罩*/
-		
-		.mask {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background-color: rgba(0, 0, 0, .4);
-			display: none;
-		}
-		
-		.properties {
-			position: absolute;
-			display: none;
-			top: 10%;
-			left: 50%;
-			margin-left: -150px;
-			width: 300px;
-			z-index: 999;
-			background-color: #ddd;
-			padding: 30px;
-			line-height: 35px;
-		}
-		
-		.properties div input {
-			float: right;
-			height: 21px;
-			margin-top: 7px;
-		}
-		
-		.properties span {
-			display: block;
-			width: 100%;
-			margin-top: 20px;
-			text-align: center;
-		}
-		
-		.node-properties {
-			height: 500px;
-		}
-	</style>
+	<link rel="stylesheet" href="topo.css" />
 
 	<body>
 		<div class="top_tool_bar">
@@ -216,6 +60,16 @@
 			<div>资产重要性:<input class="important" /></div>
 			<div>资产描述:<input class="description" /></div>
 			<span><button onclick="fSaveNodeInfo(this)">保存</button><button onclick="fCancel(this)">取消</button></span>
+		</div>
+		<div class="properties container-properties">
+			<div>区域ID:<input class="id" disabled/></div>
+			<div>区域名称*:<input class="name" /></div>
+			<div>区域描述:<input class="description" /></div>
+			<!--<div>可见性*:</div>-->
+			<div>区域重要性*:<input class="important" /></div>
+			<div>区域负责人:<input class="person" /></div>
+			<div>区域负责人联系电话:<input class="phone" /></div>
+			<span><button onclick="fSaveContainerInfo(this)">保存</button><button onclick="fCancel(this)">取消</button></span>
 		</div>
 	</body>
 	<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
@@ -476,6 +330,25 @@
 			if(text == '删除该区域') {
 				fDelContainer(currentContainer);
 				currentContainer = null;
+			} else if(text == '设置区域属性') {
+				$('.mask').css({
+					zIndex: 11
+				}).show();
+				$('.container-properties .id').attr("value", currentContainer._id);
+				$('.container-properties .name').attr("value", currentContainer.text);
+				if(!currentContainer.custom >> 0) {
+					currentContainer.custom = {
+						"description": "",
+						"important": "",
+						"person": "",
+						"phone": ""
+					}
+				}
+				$('.container-properties .description').attr("value", currentContainer.custom.description);
+				$('.container-properties .important').attr("value", currentContainer.custom.important);
+				$('.container-properties .person').attr("value", currentContainer.custom.person);
+				$('.container-properties .phone').attr("value", currentContainer.custom.phone);
+				$('.container-properties').show();
 			}
 			$("#container").hide();
 		});
@@ -505,6 +378,19 @@
 			currentNode.custom.firms = $('.node-properties .firms').attr("value");
 			currentNode.text = $('.node-properties .name').attr("value");
 			fIsNodeInfoDone(currentNode);
+			fCancel(thisobj);
+		}
+
+		/**
+		 * 保存区域属性信息
+		 */
+		function fSaveContainerInfo(thisobj) {
+			currentContainer.text = $('.container-properties .name').attr("value");
+			currentContainer.custom.description = $('.container-properties .description').attr("value");
+			currentContainer.custom.important = $('.container-properties .important').attr("value");
+			currentContainer.custom.person = $('.container-properties .person').attr("value");
+			currentContainer.custom.phone = $('.container-properties .phone').attr("value");
+			fIsContainerInfoDone(currentContainer);
 			fCancel(thisobj);
 		}
 
@@ -576,6 +462,7 @@
 			container.height = h;
 			container.width = w;
 			containers.push(container);
+			fIsContainerInfoDone(container);
 			scene.add(container);
 		}
 
@@ -687,6 +574,18 @@
 			}
 		}
 
+		function fIsContainerInfoDone(container) {
+			if(container.custom == undefined) {
+				fContainerAlert(container);
+				return;
+			}
+			if(container.text == "" || container.custom.important == "") {
+				fContainerAlert(container);
+			} else {
+				fContainerCancelAlert(container);
+			}
+		}
+
 		/**
 		 * 节点报警
 		 * @param {Object} node
@@ -707,6 +606,14 @@
 		 */
 		function fLinkAlert(link) {
 			link.strokeColor = '255,0,0';
+		}
+
+		function fContainerAlert(container) {
+			container.fillColor = "100,0,0";
+		}
+
+		function fContainerCancelAlert(container) {
+			container.fillColor = "10,100,80";
 		}
 
 		/**
