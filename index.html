@@ -73,7 +73,7 @@
 			<span><button onclick="fSaveContainerInfo(this)">保存</button><button onclick="fCancel(this)">取消</button></span>
 		</div>
 	</body>
-	<script type="text/javascript" src="js/jquery-1.6.4.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/topo.js"></script>
 	<script type="text/javascript" src="js/draggabilly.js"></script>
 	<script type="text/javascript" src="js/lsvih.js"></script>
@@ -742,7 +742,7 @@
 						} else {
 							fNodeAlert(nodes[i], "缺少防火墙");
 						}
-					} else if(nodes[i].nodetype == "")
+					}
 				} catch(e) {
 					console.log(e)
 				}
