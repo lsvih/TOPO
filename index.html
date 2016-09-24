@@ -167,6 +167,7 @@
 					//						l.arrowsRadius = 15;//带箭头的线
 					links.push(l); //将新增的连线存入数组
 					scene.add(l);
+					fCheckNode();
 					beginNode = null;
 					scene.remove(link);
 				} else {
@@ -179,6 +180,7 @@
 		});
 		//右键菜单部分
 		scene.mouseup(function(event) {
+			fCheckNode()
 			if (event.target == null) return;
 			switch (event.target.elementType) {
 				case 'node':
@@ -272,6 +274,7 @@
 				return true;
 			});
 		}
+		fCheckNode()
 	}
 	//右键菜单模块
 	//节点右键
@@ -280,6 +283,7 @@
 		if (text == '删除该节点') {
 			fDelNode(currentNode);
 			currentNode = null;
+			fCheckNode()
 		} else if (text == '放大') {
 			currentNode.scaleX += 0.2;
 			currentNode.scaleY += 0.2;
@@ -325,6 +329,7 @@
 		if (text == '删除该连线') {
 			fDelLink(currentLink);
 			currentNode = null;
+			fCheckNode()
 		}
 		$("#link").hide();
 	});
@@ -335,6 +340,7 @@
 		if (text == '删除该区域') {
 			fDelContainer(currentContainer);
 			currentContainer = null;
+			fCheckNode()
 		} else if (text == '设置区域属性') {
 			$('.mask').css({
 				zIndex: 11
@@ -386,6 +392,7 @@
 		currentNode.text = $('.node-properties .name')[0].value;
 		fIsNodeInfoDone(currentNode);
 		fCancel(thisobj);
+		fCheckNode()
 	}
 
 	/**
@@ -400,6 +407,7 @@
 		currentContainer.custom.SAL = $('.container-properties .sal')[0].value;
 		fIsContainerInfoDone(currentContainer);
 		fCancel(thisobj);
+		fCheckNode()
 	}
 
 	/**
@@ -452,7 +460,7 @@
 		node.setLocation(x, y);
 		nodes.push(node);
 		scene.add(node);
-		fIsNodeInfoDone(node);
+		fCheckNode()
 		return node;
 	}
 
@@ -471,6 +479,7 @@
 		container.width = w;
 		containers.push(container);
 		fIsContainerInfoDone(container);
+		fCheckNode()
 		scene.add(container);
 	}
 
@@ -543,6 +552,7 @@
 			}, links)
 		}
 		scene.remove(node);
+		fCheckNode()
 	}
 	/**
 	 * 删除连线
@@ -553,6 +563,7 @@
 			"_id": link._id
 		}, links)
 		scene.remove(link);
+		fCheckNode()
 	}
 
 	/**
@@ -564,6 +575,7 @@
 			"_id": container._id
 		}, containers)
 		scene.remove(container);
+		fCheckNode()
 	}
 
 	/**
@@ -616,9 +628,11 @@
 	function fLinkAlert(link) {
 		link.strokeColor = '255,0,0';
 	}
-	function fLinkCancelAlert(link){
-		link.strokeColor ='22,124,255';
+
+	function fLinkCancelAlert(link) {
+		link.strokeColor = '22,124,255';
 	}
+
 	function fContainerAlert(container) {
 		container.fillColor = "100,0,0";
 	}
@@ -637,7 +651,7 @@
 			var y = containers[z].y;
 			var w = containers[z].width;
 			var h = containers[z].height;
-			if (node.x >= x && node.x <= x + h && node.y >= y && node.y <= y + w) return containers[z];
+			if (node.x >= x && node.x <= x + w && node.y >= y && node.y <= y + h) return containers[z];
 		}
 		return null;
 	}
@@ -713,24 +727,25 @@
 	 */
 	function fCheckNode() {
 		if (!ALARM) return;
-		for(var a =0 ;a<nodes.length;a++){
+		for (var a = 0; a < nodes.length; a++) {
 			nodes[a].alarm = null;
 		}
-		for(var b=0;b<links.length;b++){
+		for (var b = 0; b < links.length; b++) {
 			fLinkCancelAlert(links[b]);
 		}
-		for (var i = 0; i < nodes.length; i++) {
-			var node = nodes[i];
+		for (var node_index = 0; node_index < nodes.length; node_index++) {
+			var node = nodes[node_index];
 
 			node.alarm = null;
 			fIsNodeInfoDone(node);
 			//如果防火墙在区域内则报警
+			console.log(node)
 			if (_IsFireWall(node) && fNodeInWhichContainer(node) !== null) {
 				fNodeAlert(node, "防火墙不能在区域内");
 			}
 			//------------------
 			//如果区域间没有防火墙，区域间连线报警
-			if(fNodeInWhichContainer(node)!==null){
+			if (fNodeInWhichContainer(node) !== null) {
 				if (node.inLinks !== null) {
 					for (var s = 0; s < node.inLinks.length; s++) {
 						if (fNodeInWhichContainer(node.inLinks[s].nodeA) !== null && fNodeInWhichContainer(node.inLinks[s].nodeA)._id !== fNodeInWhichContainer(node)._id) fLinkAlert(node.inLinks[s]);
@@ -742,10 +757,68 @@
 					}
 				}
 			}
-
-
-
 			//------------------
+			//如果该元素为VLAN组件
+			if (_IsVlan(node)) {
+				if(node.inLinks !== null&&node.outLinks !== null){
+					if(!(fNodeInWhichContainer(node)||(_IsFireWall(node.inLinks[0].nodeA)&&_IsFireWall(node.outLinks[0].nodeZ))){
+ 					 if(!_IsFireWall(node.inLinks[0].nodeA)&&!_IsFireWall(node.outLinks[0].nodeZ)){
+						 
+					 }else{
+						 fNodeAlert(node,"VLAN组件需要防火墙")
+					 }
+ 				 }
+				}
+
+			}
+			//-------------------
+			//如果node为外网组件
+			if (_IsOutNet(node)) {
+
+			}
+			//------------------
+			if (_IsMuiltPort(node)) {
+				var A = fNodeInWhichContainer(node);
+				if (node.inLinks !== null) {
+					for (var s = 0; s < node.inLinks.length; s++) {
+						var B = fNodeInWhichContainer(node.inLinks[s].nodeA);
+						if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
+							fNodeAlert(node, "123")
+						}
+					}
+				}
+				if (node.outLinks !== null) {
+					for (var k = 0; k < A.outLinks.length; k++) {
+						var B = fNodeInWhichContainer(A.outLinks[k].nodeZ);
+						if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
+							fNodeAlert(node, "123")
+						}
+					}
+				}
+			} else {
+				var A = fNodeInWhichContainer(node);
+				if (node.inLinks !== null) {
+					for (var s = 0; s < node.inLinks.length; s++) {
+						var B = fNodeInWhichContainer(node.inLinks[s].nodeA);
+						if (A !== null && B !== null) {
+							fLinkAlert(node.inLinks[s])
+						}
+					}
+				}
+				if (node.outLinks !== null) {
+					for (var k = 0; k < node.outLinks.length; k++) {
+						var B = fNodeInWhichContainer(node.outLinks[k].nodeZ);
+						if (A !== null && B !== null) {
+							fLinkAlert(node.outLinks[k])
+						}
+					}
+				}
+			}
+
+
+
+
+
 		}
 
 		/**
@@ -753,9 +826,90 @@
 		 * @param  {Object} node
 		 * @return {Boolean}
 		 */
-		function _IsFireWall(node) {
-			var nodetype = decodeURIComponent(node.image.src).split(".png")[0].substr(-3);
-			return /防火墙/.test(nodetype);
+		function _IsFireWall(this_node) {
+			try {
+				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-3);
+				return /防火墙/.test(nodetype);
+			} catch (e) {
+				return false;
+			}
+		}
+
+		/**
+		 * 判断一个元素是否是外网组件
+		 * @param  {Object} node
+		 * @return {Boolean}
+		 */
+		function _IsOutNet(this_node) {
+
+		}
+		/**
+		 * 判断一个元素是否是多端口组件
+		 * @param  {Object} node
+		 * @return {Boolean}
+		 */
+		function _IsMuiltPort(this_node) {
+
+		}
+
+		/**
+		 * 判断一个元素是否为vlan组件
+		 * @param  {Object} node
+		 * @return {Boolean}
+		 */
+		function _IsVlan(this_node) {
+			try {
+				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-3);
+				if (nodetype == "交换机") return true;
+				return /.*VLAN.*/.test(nodetype);
+			} catch (e) {
+				return false;
+			}
+		}
+
+		/**
+		 * 判断一个元素是否为单向设备
+		 * @param  {Object} node
+		 * @return {Boolean}
+		 */
+		function _IsOneWay(this_node) {
+			try {
+				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-3);
+				return /.*单向设备.*/.test(nodetype);
+			} catch (e) {
+				return false;
+			}
+		}
+
+		/**
+		 * 向上遍历查找元素在哪个区域中
+		 * @param  {Object} node
+		 * @return {Obect}      区域
+		 */
+		function _FindPrevContainerNode(this_node) {
+			if (fNodeInWhichContainer(this_node) == null) {
+				for (var i = 0; i < this_node.inLinks.length; i++) {
+					_FindPrevContainerNode(this_node.inLinks[i].nodeA);
+				}
+			} else {
+				return fNodeInWhichContainer(this_node);
+			}
+		}
+
+
+		/**
+		 * 向下遍历查找元素在哪个区域中
+		 * @param  {Object} node
+		 * @return {Obect}      区域
+		 */
+		function _FindNextContainerNode(this_node) {
+			if (fNodeInWhichContainer(this_node) == null) {
+				for (var i = 0; i < this_node.outLinks.length; i++) {
+					_FindNextContainerNode(this_node.outLinks[i].nodeZ);
+				}
+			} else {
+				return fNodeInWhichContainer(this_node);
+			}
 		}
 	}
 </script>
