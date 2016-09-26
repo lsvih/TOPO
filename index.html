@@ -767,7 +767,7 @@
 							try {
 								if (_FindNextContainerNode(node).custom.SAL !== _FindPrevContainerNode(node).custom.SAL) fNodeAlert(node, "VLAN组件需要防火墙")
 							} catch (e) {
-								fNodeAlert(node, "VLAN组件连接的区域信息未填写完成")
+								fNodeAlert(node, "VLAN组件错误")
 							}
 
 						} else {
@@ -800,7 +800,7 @@
 					for (var s = 0; s < node.inLinks.length; s++) {
 						var B = fNodeInWhichContainer(node.inLinks[s].nodeA);
 						if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
-							fNodeAlert(node, "123")
+							fNodeAlert(node, "多端口组件错误")
 						}
 					}
 				}
@@ -808,7 +808,7 @@
 					for (var k = 0; k < A.outLinks.length; k++) {
 						var B = fNodeInWhichContainer(A.outLinks[k].nodeZ);
 						if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
-							fNodeAlert(node, "123")
+							fNodeAlert(node, "多端口组件错误")
 						}
 					}
 				}
