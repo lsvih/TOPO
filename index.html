@@ -761,23 +761,37 @@
 			//------------------
 			//如果该元素为VLAN组件
 			if (_IsVlan(node)) {
-				if(node.inLinks !== null&&node.outLinks !== null&&node.inLinks.length&&node.outLinks.length){
-					if(!(fNodeInWhichContainer(node)!==null||(_IsFireWall(node.inLinks[0].nodeA)&&_IsFireWall(node.outLinks[0].nodeZ)))){
- 					 if(!_IsFireWall(node.inLinks[0].nodeA)&&!_IsFireWall(node.outLinks[0].nodeZ)){
-						 try{if(_FindNextContainerNode(node).custom.SAL !== _FindPrevContainerNode(node).custom.SAL) fNodeAlert(node,"VLAN组件需要防火墙")}
-						 catch(e){fNodeAlert(node,"VLAN组件连接的区域信息未填写完成")}
+				if (node.inLinks !== null && node.outLinks !== null && node.inLinks.length && node.outLinks.length) {
+					if (!(fNodeInWhichContainer(node) !== null || (_IsFireWall(node.inLinks[0].nodeA) && _IsFireWall(node.outLinks[0].nodeZ)))) {
+						if (!_IsFireWall(node.inLinks[0].nodeA) && !_IsFireWall(node.outLinks[0].nodeZ)) {
+							try {
+								if (_FindNextContainerNode(node).custom.SAL !== _FindPrevContainerNode(node).custom.SAL) fNodeAlert(node, "VLAN组件需要防火墙")
+							} catch (e) {
+								fNodeAlert(node, "VLAN组件连接的区域信息未填写完成")
+							}
 
-					 }else{
-						 fNodeAlert(node,"VLAN组件需要防火墙")
-					 }
- 				 }
+						} else {
+							fNodeAlert(node, "VLAN组件需要防火墙")
+						}
+					}
 				}
 
 			}
 			//-------------------
 			//如果node为外网组件
 			if (_IsOutNet(node)) {
-
+				if (_judge(node)) fNodeAlert(node, "外网组件必须有防火墙保护")
+				function _judge(node) {
+					try {
+						var nodes = fFindPrevNodes(node).concat(fFindNextNodes(node));
+						for (var i = 0; i < nodes.length; i++) {
+							if (_IsFireWall(nodes[i])) return false
+						}
+						return true
+					} finally {
+						return false
+					}
+				}
 			}
 			//------------------
 			if (_IsMuiltPort(node)) {
@@ -891,8 +905,8 @@
 		 */
 		function _FindPrevContainerNode(this_node) {
 			stack_size++;
-			if(this_node == null) return null;
-			if(stack_size >= MAX_STACK){
+			if (this_node == null) return null;
+			if (stack_size >= MAX_STACK) {
 				console.log("stack over!")
 				stack_size = 0;
 				return null;
@@ -914,8 +928,8 @@
 		 */
 		function _FindNextContainerNode(this_node) {
 			stack_size++;
-			if(this_node == null) return null;
-			if(stack_size >= MAX_STACK){
+			if (this_node == null) return null;
+			if (stack_size >= MAX_STACK) {
 				console.log("stack over!")
 				stack_size = 0;
 				return null;
