@@ -91,6 +91,8 @@
 	var currentNode;
 	var currentLink;
 	var currentContainer;
+	var MAX_STACK = 150;
+	var stack_size = 0;
 	var TOOL_BAR_WIDTH = 150;
 	var TOOL_BAR_HEIGHT = 50;
 	var PAGE_WIDTH = window.innerWidth;
@@ -317,7 +319,7 @@
 			$('.node-properties .child-name')[0].value = currentNode.custom["child-name"];
 			$('.node-properties .important')[0].value = currentNode.custom.important;
 			$('.node-properties .description')[0].value = currentNode.custom.description;
-			$('.node-properties .firms')[0].value = currentNode.custom.firems;
+			$('.node-properties .firms')[0].value = currentNode.custom.firms;
 			$('.node-properties').show();
 		}
 		$("#node").hide();
@@ -739,7 +741,6 @@
 			node.alarm = null;
 			fIsNodeInfoDone(node);
 			//如果防火墙在区域内则报警
-			console.log(node)
 			if (_IsFireWall(node) && fNodeInWhichContainer(node) !== null) {
 				fNodeAlert(node, "防火墙不能在区域内");
 			}
@@ -760,10 +761,12 @@
 			//------------------
 			//如果该元素为VLAN组件
 			if (_IsVlan(node)) {
-				if(node.inLinks !== null&&node.outLinks !== null){
-					if(!(fNodeInWhichContainer(node)||(_IsFireWall(node.inLinks[0].nodeA)&&_IsFireWall(node.outLinks[0].nodeZ))){
+				if(node.inLinks !== null&&node.outLinks !== null&&node.inLinks.length&&node.outLinks.length){
+					if(!(fNodeInWhichContainer(node)!==null||(_IsFireWall(node.inLinks[0].nodeA)&&_IsFireWall(node.outLinks[0].nodeZ)))){
  					 if(!_IsFireWall(node.inLinks[0].nodeA)&&!_IsFireWall(node.outLinks[0].nodeZ)){
-						 
+						 try{if(_FindNextContainerNode(node).custom.SAL !== _FindPrevContainerNode(node).custom.SAL) fNodeAlert(node,"VLAN组件需要防火墙")}
+						 catch(e){fNodeAlert(node,"VLAN组件连接的区域信息未填写完成")}
+
 					 }else{
 						 fNodeAlert(node,"VLAN组件需要防火墙")
 					 }
@@ -887,9 +890,16 @@
 		 * @return {Obect}      区域
 		 */
 		function _FindPrevContainerNode(this_node) {
+			stack_size++;
+			if(this_node == null) return null;
+			if(stack_size >= MAX_STACK){
+				console.log("stack over!")
+				stack_size = 0;
+				return null;
+			}
 			if (fNodeInWhichContainer(this_node) == null) {
 				for (var i = 0; i < this_node.inLinks.length; i++) {
-					_FindPrevContainerNode(this_node.inLinks[i].nodeA);
+					return _FindPrevContainerNode(this_node.inLinks[i].nodeA);
 				}
 			} else {
 				return fNodeInWhichContainer(this_node);
@@ -903,9 +913,16 @@
 		 * @return {Obect}      区域
 		 */
 		function _FindNextContainerNode(this_node) {
+			stack_size++;
+			if(this_node == null) return null;
+			if(stack_size >= MAX_STACK){
+				console.log("stack over!")
+				stack_size = 0;
+				return null;
+			}
 			if (fNodeInWhichContainer(this_node) == null) {
 				for (var i = 0; i < this_node.outLinks.length; i++) {
-					_FindNextContainerNode(this_node.outLinks[i].nodeZ);
+					return _FindNextContainerNode(this_node.outLinks[i].nodeZ);
 				}
 			} else {
 				return fNodeInWhichContainer(this_node);
