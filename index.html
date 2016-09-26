@@ -781,6 +781,11 @@
 			//如果node为外网组件
 			if (_IsOutNet(node)) {
 				if (_judge(node)) fNodeAlert(node, "外网组件必须有防火墙保护")
+				try {
+					if (node.inLinks.length > 1) fNodeAlert(node, "单端口组件只能有一个连接")
+					if (node.outLinks.length > 1) fNodeAlert(node, "单端口组件只能有一个连接")
+					if (node.inLinks.length + node.outLinks.length > 1) fNodeAlert(node, "单端口组件只能有一个连接")
+				} catch (e) {}
 				function _judge(node) {
 					try {
 						var nodes = fFindPrevNodes(node).concat(fFindNextNodes(node));
@@ -796,21 +801,26 @@
 			//------------------
 			if (_IsMuiltPort(node)) {
 				var A = fNodeInWhichContainer(node);
-				if (node.inLinks !== null) {
-					for (var s = 0; s < node.inLinks.length; s++) {
-						var B = fNodeInWhichContainer(node.inLinks[s].nodeA);
-						if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
-							fNodeAlert(node, "多端口组件错误")
+				try {
+					if (node.inLinks !== null && node.inLinks.length) {
+						for (var s = 0; s < node.inLinks.length; s++) {
+							var B = fNodeInWhichContainer(node.inLinks[s].nodeA);
+							if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
+								fNodeAlert(node, "多端口组件错误")
+							}
 						}
 					}
-				}
-				if (node.outLinks !== null) {
-					for (var k = 0; k < A.outLinks.length; k++) {
-						var B = fNodeInWhichContainer(A.outLinks[k].nodeZ);
-						if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
-							fNodeAlert(node, "多端口组件错误")
+					if (node.outLinks !== null && node.outLinks.length) {
+						for (var k = 0; k < A.outLinks.length; k++) {
+							var B = fNodeInWhichContainer(A.outLinks[k].nodeZ);
+							if (A !== null && B !== null && A.custom.SAL !== B.custom.SAL) {
+								fNodeAlert(node, "多端口组件错误")
+							}
 						}
 					}
+				} catch (e) {
+					fNodeAlert(node, "多端口错误");
+					console.log(e)
 				}
 			} else {
 				var A = fNodeInWhichContainer(node);
@@ -831,11 +841,24 @@
 					}
 				}
 			}
-
-
-
-
-
+			//如果node为单端口组件
+			if (_IsOneWay(node)) {
+				try {
+					var nodetype = decodeURIComponent(node.image.src).split(".png")[0].substr(-8);
+					var l = nodetype.match(/\(.*\)/)[0] == "(向右)" ? 1 : -1;
+					var prevCon = _FindPrevContainerNode(node);
+					var nextCon = _FindNextContainerNode(node);
+					try {
+						var m = prevCon.x > nextCon.x ? 1 : -1;
+						var p = prevCon.custom.SAL > nextCon.custom.SAL ? 1 : -1
+						if (m * l * p == 1) fNodeAlert(node, "单向组件错误");
+					} catch (e) {
+						console.log(e)
+					}
+				} catch (e) {
+					console.log(e)
+				}
+			}
 		}
 
 		/**
@@ -853,12 +876,22 @@
 		}
 
 		/**
-		 * 判断一个元素是否是外网组件
+		 * 判断一个元素是否是外网组件（单端口组件）
 		 * @param  {Object} node
 		 * @return {Boolean}
 		 */
 		function _IsOutNet(this_node) {
-
+			var singlePortClass = [
+				"IPS", "PLC", "SCADA服务器或主终端服务单元", "人机界面接口（HMI）", "前端处理器", "工程师站", "DNS服务器", "IP phone", "IP 摄像头", "PC", "Web Server", "串口交换机", "光环网系统", "应用服务器", "手持无线设备", "数据库服务器"
+			]
+			try {
+				var name = decodeURIComponent(this_node.image.src).split(".png")[0];
+				name = name.split("/");
+				name = name[name.length - 1];
+				return !!~singlePortClass.indexOf(name)
+			} catch (e) {
+				console.log(e)
+			}
 		}
 		/**
 		 * 判断一个元素是否是多端口组件
@@ -866,7 +899,7 @@
 		 * @return {Boolean}
 		 */
 		function _IsMuiltPort(this_node) {
-
+			return !_IsOutNet(this_node)
 		}
 
 		/**
@@ -876,7 +909,7 @@
 		 */
 		function _IsVlan(this_node) {
 			try {
-				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-3);
+				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-6);
 				if (nodetype == "交换机") return true;
 				return /.*VLAN.*/.test(nodetype);
 			} catch (e) {
@@ -891,8 +924,8 @@
 		 */
 		function _IsOneWay(this_node) {
 			try {
-				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-3);
-				return /.*单向设备.*/.test(nodetype);
+				var nodetype = decodeURIComponent(this_node.image.src).split(".png")[0].substr(-8);
+				return /.*单向装置.*/.test(nodetype);
 			} catch (e) {
 				return false;
 			}
@@ -905,18 +938,22 @@
 		 */
 		function _FindPrevContainerNode(this_node) {
 			stack_size++;
-			if (this_node == null) return null;
-			if (stack_size >= MAX_STACK) {
-				console.log("stack over!")
-				stack_size = 0;
-				return null;
-			}
-			if (fNodeInWhichContainer(this_node) == null) {
-				for (var i = 0; i < this_node.inLinks.length; i++) {
-					return _FindPrevContainerNode(this_node.inLinks[i].nodeA);
+			try {
+				if (this_node == null) return null;
+				if (stack_size >= MAX_STACK) {
+					console.log("stack over!")
+					stack_size = 0;
+					return null;
 				}
-			} else {
-				return fNodeInWhichContainer(this_node);
+				if (fNodeInWhichContainer(this_node) == null) {
+					for (var i = 0; i < this_node.inLinks.length; i++) {
+						return _FindPrevContainerNode(this_node.inLinks[i].nodeA);
+					}
+				} else {
+					return fNodeInWhichContainer(this_node);
+				}
+			} catch (e) {
+				console.log(e)
 			}
 		}
 
@@ -928,18 +965,22 @@
 		 */
 		function _FindNextContainerNode(this_node) {
 			stack_size++;
-			if (this_node == null) return null;
-			if (stack_size >= MAX_STACK) {
-				console.log("stack over!")
-				stack_size = 0;
-				return null;
-			}
-			if (fNodeInWhichContainer(this_node) == null) {
-				for (var i = 0; i < this_node.outLinks.length; i++) {
-					return _FindNextContainerNode(this_node.outLinks[i].nodeZ);
+			try {
+				if (this_node == null) return null;
+				if (stack_size >= MAX_STACK) {
+					console.log("stack over!")
+					stack_size = 0;
+					return null;
 				}
-			} else {
-				return fNodeInWhichContainer(this_node);
+				if (fNodeInWhichContainer(this_node) == null) {
+					for (var i = 0; i < this_node.outLinks.length; i++) {
+						return _FindNextContainerNode(this_node.outLinks[i].nodeZ);
+					}
+				} else {
+					return fNodeInWhichContainer(this_node);
+				}
+			} catch (e) {
+				console.log(e)
 			}
 		}
 	}

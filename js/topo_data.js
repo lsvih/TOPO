@@ -1,355 +1,359 @@
 var classList = ["IT", "ICS", "医疗", "无线电", "通用符号"];
 //初始数据
 var type = [{
-	"id": 0,
-	"class": "ICS",
-	"name": "DCS"
-}, {
-	"id": 1,
-	"class": "ICS",
-	"name": "IDS（入侵检测系统）"
-}, {
-	"id": 2,
-	"class": "ICS",
-	"name": "IPS"
-}, {
-	"id": 3,
-	"class": "ICS",
-	"name": "PLC"
-}, {
-	"id": 4,
-	"class": "ICS",
-	"name": "RTU（远程终端设备）"
-}, {
-	"id": 5,
-	"class": "ICS",
-	"name": "SCADA服务器或主终端服务单元"
-}, {
-	"id": 6,
-	"class": "ICS",
-	"name": "人机界面接口（HMI）"
-}, {
-	"id": 7,
-	"class": "ICS",
-	"name": "前端处理器"
-}, {
-	"id": 8,
-	"class": "ICS",
-	"name": "功能安全设备系统"
-}, {
-	"id": 9,
-	"class": "ICS",
-	"name": "单向装置"
-}, {
-	"id": 10,
-	"class": "ICS",
-	"name": "历史数据库"
-}, {
-	"id": 11,
-	"class": "ICS",
-	"name": "工程师站"
-}, {
-	"id": 12,
-	"class": "ICS",
-	"name": "智能电子设备"
-}, {
-	"id": 13,
-	"class": "ICS",
-	"name": "终端服务器"
-}, {
-	"id": 14,
-	"class": "ICS",
-	"name": "配置服务器"
-}, {
-	"id": 15,
-	"class": "IT",
-	"name": "DNS服务器"
-}, {
-	"id": 16,
-	"class": "IT",
-	"name": "IP phone"
-}, {
-	"id": 17,
-	"class": "IT",
-	"name": "IP 摄像头"
-}, {
-	"id": 18,
-	"class": "IT",
-	"name": "PC"
-}, {
-	"id": 19,
-	"class": "IT",
-	"name": "RFID发射器"
-}, {
-	"id": 20,
-	"class": "IT",
-	"name": "VLAN交换机"
-}, {
-	"id": 21,
-	"class": "IT",
-	"name": "VLAN路由器"
-}, {
-	"id": 22,
-	"class": "IT",
-	"name": "VPN"
-}, {
-	"id": 23,
-	"class": "IT",
-	"name": "Web Server"
-}, {
-	"id": 24,
-	"class": "IT",
-	"name": "不间断电源"
-}, {
-	"id": 25,
-	"class": "IT",
-	"name": "串口交换机"
-}, {
-	"id": 26,
-	"class": "IT",
-	"name": "互动电视"
-}, {
-	"id": 27,
-	"class": "IT",
-	"name": "交换机"
-}, {
-	"id": 28,
-	"class": "IT",
-	"name": "光环网系统"
-}, {
-	"id": 29,
-	"class": "IT",
-	"name": "公用电话亭（公共信息亭）"
-}, {
-	"id": 30,
-	"class": "IT",
-	"name": "应用服务器"
-}, {
-	"id": 31,
-	"class": "IT",
-	"name": "手持无线设备"
-}, {
-	"id": 32,
-	"class": "IT",
-	"name": "打印机"
-}, {
-	"id": 33,
-	"class": "IT",
-	"name": "数据库服务器"
-}, {
-	"id": 34,
-	"class": "IT",
-	"name": "无线Modem"
-}, {
-	"id": 35,
-	"class": "IT",
-	"name": "无线串口"
-}, {
-	"id": 36,
-	"class": "IT",
-	"name": "无线网络"
-}, {
-	"id": 37,
-	"class": "IT",
-	"name": "无线路由器"
-}, {
-	"id": 38,
-	"class": "IT",
-	"name": "时钟"
-}, {
-	"id": 39,
-	"class": "IT",
-	"name": "服务器"
-}, {
-	"id": 40,
-	"class": "IT",
-	"name": "楼宇自动管理系统"
-}, {
-	"id": 41,
-	"class": "IT",
-	"name": "活动目录服务器"
-}, {
-	"id": 42,
-	"class": "IT",
-	"name": "电子保安系统"
-}, {
-	"id": 43,
-	"class": "IT",
-	"name": "网络扫描仪和复印机"
-}, {
-	"id": 44,
-	"class": "IT",
-	"name": "虚拟机"
-}, {
-	"id": 45,
-	"class": "IT",
-	"name": "视频会议装置"
-}, {
-	"id": 46,
-	"class": "IT",
-	"name": "调制解调器"
-}, {
-	"id": 47,
-	"class": "IT",
-	"name": "路由器"
-}, {
-	"id": 48,
-	"class": "IT",
-	"name": "远程接入服务器"
-}, {
-	"id": 49,
-	"class": "IT",
-	"name": "连接加密"
-}, {
-	"id": 50,
-	"class": "IT",
-	"name": "邮件服务器"
-}, {
-	"id": 51,
-	"class": "IT",
-	"name": "门禁单元"
-}, {
-	"id": 52,
-	"class": "IT",
-	"name": "防火墙"
-}, {
-	"id": 53,
-	"class": "IT",
-	"name": "集线器"
-}, {
-	"id": 54,
-	"class": "医疗",
-	"name": "CT 扫描机"
-}, {
-	"id": 55,
-	"class": "医疗",
-	"name": "X射线发生器"
-}, {
-	"id": 56,
-	"class": "医疗",
-	"name": "内窥镜系统"
-}, {
-	"id": 57,
-	"class": "医疗",
-	"name": "医用气体系统"
-}, {
-	"id": 58,
-	"class": "医疗",
-	"name": "婴儿保护远程显示单元"
-}, {
-	"id": 59,
-	"class": "医疗",
-	"name": "定时定位系统"
-}, {
-	"id": 60,
-	"class": "医疗",
-	"name": "尿动力学诊断设备"
-}, {
-	"id": 61,
-	"class": "医疗",
-	"name": "心电图"
-}, {
-	"id": 62,
-	"class": "医疗",
-	"name": "成像方式与设备"
-}, {
-	"id": 63,
-	"class": "医疗",
-	"name": "成像服务器"
-}, {
-	"id": 64,
-	"class": "医疗",
-	"name": "核磁共振成像系统"
-}, {
-	"id": 65,
-	"class": "医疗",
-	"name": "生理监测系统"
-}, {
-	"id": 66,
-	"class": "医疗",
-	"name": "紧急医疗服务硬件"
-}, {
-	"id": 67,
-	"class": "医疗",
-	"name": "线性粒子加速器"
-}, {
-	"id": 68,
-	"class": "医疗",
-	"name": "脑电图"
-}, {
-	"id": 69,
-	"class": "医疗",
-	"name": "表皮肌电图"
-}, {
-	"id": 70,
-	"class": "医疗",
-	"name": "超声波"
-}, {
-	"id": 71,
-	"class": "医疗",
-	"name": "输液泵"
-}, {
-	"id": 72,
-	"class": "无线电",
-	"name": "T1回传单元"
-}, {
-	"id": 73,
-	"class": "无线电",
-	"name": "TDM(时分复用）回传网络"
-}, {
-	"id": 74,
-	"class": "无线电",
-	"name": "中继器"
-}, {
-	"id": 75,
-	"class": "无线电",
-	"name": "主站"
-}, {
-	"id": 76,
-	"class": "无线电",
-	"name": "以太网回传系统"
-}, {
-	"id": 77,
-	"class": "无线电",
-	"name": "微波回传网络"
-}, {
-	"id": 78,
-	"class": "无线电",
-	"name": "无线发送接收站"
-}, {
-	"id": 79,
-	"class": "无线电",
-	"name": "订户"
-}, {
-	"id": 80,
-	"class": "无线电",
-	"name": "调派控制台"
-}, {
-	"id": 81,
-	"class": "无线电",
-	"name": "音频交换机"
-}, {
-	"id": 82,
-	"class": "通用符号",
-	"name": "Web"
-}, {
-	"id": 83,
-	"class": "通用符号",
-	"name": "伙伴"
-}, {
-	"id": 84,
-	"class": "通用符号",
-	"name": "区域"
-}, {
-	"id": 85,
-	"class": "通用符号",
-	"name": "厂商"
-}, {
-	"id": 86,
-	"class": "通用符号",
-	"name": "未知"
-}, {
-	"id": 87,
-	"class": "通用符号",
-	"name": "连接点"
+    "id": 0,
+    "class": "ICS",
+    "name": "DCS"
+}, {
+    "id": 1,
+    "class": "ICS",
+    "name": "IDS（入侵检测系统）"
+}, {
+    "id": 2,
+    "class": "ICS",
+    "name": "IPS"
+}, {
+    "id": 3,
+    "class": "ICS",
+    "name": "PLC"
+}, {
+    "id": 4,
+    "class": "ICS",
+    "name": "RTU（远程终端设备）"
+}, {
+    "id": 5,
+    "class": "ICS",
+    "name": "SCADA服务器或主终端服务单元"
+}, {
+    "id": 6,
+    "class": "ICS",
+    "name": "人机界面接口（HMI）"
+}, {
+    "id": 7,
+    "class": "ICS",
+    "name": "前端处理器"
+}, {
+    "id": 8,
+    "class": "ICS",
+    "name": "功能安全设备系统"
+}, {
+    "id": 9,
+    "class": "ICS",
+    "name": "单向装置(向右)"
+}, {
+    "id": 10,
+    "class": "ICS",
+    "name": "单向装置(向左)"
+}, {
+    "id": 11,
+    "class": "ICS",
+    "name": "历史数据库"
+}, {
+    "id": 12,
+    "class": "ICS",
+    "name": "工程师站"
+}, {
+    "id": 13,
+    "class": "ICS",
+    "name": "智能电子设备"
+}, {
+    "id": 14,
+    "class": "ICS",
+    "name": "终端服务器"
+}, {
+    "id": 15,
+    "class": "ICS",
+    "name": "配置服务器"
+}, {
+    "id": 16,
+    "class": "IT",
+    "name": "DNS服务器"
+}, {
+    "id": 17,
+    "class": "IT",
+    "name": "IP phone"
+}, {
+    "id": 18,
+    "class": "IT",
+    "name": "IP 摄像头"
+}, {
+    "id": 19,
+    "class": "IT",
+    "name": "PC"
+}, {
+    "id": 20,
+    "class": "IT",
+    "name": "RFID发射器"
+}, {
+    "id": 21,
+    "class": "IT",
+    "name": "VLAN交换机"
+}, {
+    "id": 22,
+    "class": "IT",
+    "name": "VLAN路由器"
+}, {
+    "id": 23,
+    "class": "IT",
+    "name": "VPN"
+}, {
+    "id": 24,
+    "class": "IT",
+    "name": "Web Server"
+}, {
+    "id": 25,
+    "class": "IT",
+    "name": "不间断电源"
+}, {
+    "id": 26,
+    "class": "IT",
+    "name": "串口交换机"
+}, {
+    "id": 27,
+    "class": "IT",
+    "name": "互动电视"
+}, {
+    "id": 28,
+    "class": "IT",
+    "name": "交换机"
+}, {
+    "id": 29,
+    "class": "IT",
+    "name": "光环网系统"
+}, {
+    "id": 30,
+    "class": "IT",
+    "name": "公用电话亭（公共信息亭）"
+}, {
+    "id": 31,
+    "class": "IT",
+    "name": "应用服务器"
+}, {
+    "id": 32,
+    "class": "IT",
+    "name": "手持无线设备"
+}, {
+    "id": 33,
+    "class": "IT",
+    "name": "打印机"
+}, {
+    "id": 34,
+    "class": "IT",
+    "name": "数据库服务器"
+}, {
+    "id": 35,
+    "class": "IT",
+    "name": "无线Modem"
+}, {
+    "id": 36,
+    "class": "IT",
+    "name": "无线串口"
+}, {
+    "id": 37,
+    "class": "IT",
+    "name": "无线网络"
+}, {
+    "id": 38,
+    "class": "IT",
+    "name": "无线路由器"
+}, {
+    "id": 39,
+    "class": "IT",
+    "name": "时钟"
+}, {
+    "id": 40,
+    "class": "IT",
+    "name": "服务器"
+}, {
+    "id": 41,
+    "class": "IT",
+    "name": "楼宇自动管理系统"
+}, {
+    "id": 42,
+    "class": "IT",
+    "name": "活动目录服务器"
+}, {
+    "id": 43,
+    "class": "IT",
+    "name": "电子保安系统"
+}, {
+    "id": 44,
+    "class": "IT",
+    "name": "网络扫描仪和复印机"
+}, {
+    "id": 45,
+    "class": "IT",
+    "name": "虚拟机"
+}, {
+    "id": 46,
+    "class": "IT",
+    "name": "视频会议装置"
+}, {
+    "id": 47,
+    "class": "IT",
+    "name": "调制解调器"
+}, {
+    "id": 48,
+    "class": "IT",
+    "name": "路由器"
+}, {
+    "id": 49,
+    "class": "IT",
+    "name": "远程接入服务器"
+}, {
+    "id": 50,
+    "class": "IT",
+    "name": "连接加密"
+}, {
+    "id": 51,
+    "class": "IT",
+    "name": "邮件服务器"
+}, {
+    "id": 52,
+    "class": "IT",
+    "name": "门禁单元"
+}, {
+    "id": 53,
+    "class": "IT",
+    "name": "防火墙"
+}, {
+    "id": 54,
+    "class": "IT",
+    "name": "集线器"
+}, {
+    "id": 55,
+    "class": "医疗",
+    "name": "CT 扫描机"
+}, {
+    "id": 56,
+    "class": "医疗",
+    "name": "X射线发生器"
+}, {
+    "id": 57,
+    "class": "医疗",
+    "name": "内窥镜系统"
+}, {
+    "id": 58,
+    "class": "医疗",
+    "name": "医用气体系统"
+}, {
+    "id": 59,
+    "class": "医疗",
+    "name": "婴儿保护远程显示单元"
+}, {
+    "id": 60,
+    "class": "医疗",
+    "name": "定时定位系统"
+}, {
+    "id": 61,
+    "class": "医疗",
+    "name": "尿动力学诊断设备"
+}, {
+    "id": 62,
+    "class": "医疗",
+    "name": "心电图"
+}, {
+    "id": 63,
+    "class": "医疗",
+    "name": "成像方式与设备"
+}, {
+    "id": 64,
+    "class": "医疗",
+    "name": "成像服务器"
+}, {
+    "id": 65,
+    "class": "医疗",
+    "name": "核磁共振成像系统"
+}, {
+    "id": 66,
+    "class": "医疗",
+    "name": "生理监测系统"
+}, {
+    "id": 67,
+    "class": "医疗",
+    "name": "紧急医疗服务硬件"
+}, {
+    "id": 68,
+    "class": "医疗",
+    "name": "线性粒子加速器"
+}, {
+    "id": 69,
+    "class": "医疗",
+    "name": "脑电图"
+}, {
+    "id": 70,
+    "class": "医疗",
+    "name": "表皮肌电图"
+}, {
+    "id": 71,
+    "class": "医疗",
+    "name": "超声波"
+}, {
+    "id": 72,
+    "class": "医疗",
+    "name": "输液泵"
+}, {
+    "id": 73,
+    "class": "无线电",
+    "name": "T1回传单元"
+}, {
+    "id": 74,
+    "class": "无线电",
+    "name": "TDM(时分复用）回传网络"
+}, {
+    "id": 75,
+    "class": "无线电",
+    "name": "中继器"
+}, {
+    "id": 76,
+    "class": "无线电",
+    "name": "主站"
+}, {
+    "id": 77,
+    "class": "无线电",
+    "name": "以太网回传系统"
+}, {
+    "id": 78,
+    "class": "无线电",
+    "name": "微波回传网络"
+}, {
+    "id": 79,
+    "class": "无线电",
+    "name": "无线发送接收站"
+}, {
+    "id": 80,
+    "class": "无线电",
+    "name": "订户"
+}, {
+    "id": 81,
+    "class": "无线电",
+    "name": "调派控制台"
+}, {
+    "id": 82,
+    "class": "无线电",
+    "name": "音频交换机"
+}, {
+    "id": 83,
+    "class": "通用符号",
+    "name": "Web"
+}, {
+    "id": 84,
+    "class": "通用符号",
+    "name": "伙伴"
+}, {
+    "id": 85,
+    "class": "通用符号",
+    "name": "区域"
+}, {
+    "id": 86,
+    "class": "通用符号",
+    "name": "厂商"
+}, {
+    "id": 87,
+    "class": "通用符号",
+    "name": "未知"
+}, {
+    "id": 88,
+    "class": "通用符号",
+    "name": "连接点"
 }];
