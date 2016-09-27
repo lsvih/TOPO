@@ -96,15 +96,25 @@ li {
 }
 
 .top_tool_bar div {
-	vertical-align: middle;
+	display:inline-block;
+	text-align: center;
 	padding: 5px;
-	width: 100px;
+	width: 70px;
 }
 
 .top_tool_bar div.active {
 	background-color: #fff;
 }
 
+.top_tool_bar p{
+	font-size: 12px;
+	margin:0;
+	line-height: 10px;
+}
+.save{
+	float:right;
+	padding-right:50px!important;
+}
 #painter {
 	position: absolute;
 	top: 50px;

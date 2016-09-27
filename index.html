@@ -10,7 +10,12 @@
 
 <body>
 	<div class="top_tool_bar">
-		<div class="add-container" onclick="fSelectTool(this)"><img src="icon/folder.png" height="30px" width="30px">绘制区域</div>
+		<div class="add-container" onclick="fSelectTool(this)"><img src="icon/container.png" height="30px" width="30px">
+			<p>绘制区域</p>
+		</div>
+		<div class="save" onclick="uploadTOPO()"><img src="icon/save.png" height="30px" width="30px">
+			<p>保存拓扑</p>
+		</div>
 	</div>
 	<div class="mask"></div>
 	<div class="tool"></div>
@@ -298,19 +303,6 @@
 			}).show();
 			$('.node-properties .id')[0].value = currentNode._id;
 			$('.node-properties .name')[0].value = currentNode.text;
-			if (!currentNode.custom >> 0) {
-				currentNode.custom = {
-					"ip": "",
-					"type": "",
-					"firms": "",
-					"series-name": "",
-					"version": "",
-					"area": "",
-					"child-name": "",
-					"important": "",
-					"description": ""
-				}
-			}
 			$('.node-properties .ip')[0].value = currentNode.custom.ip;
 			$('.node-properties .type')[0].value = currentNode.custom.type;
 			$('.node-properties .series-name')[0].value = currentNode.custom["series-name"];
@@ -349,15 +341,6 @@
 			}).show();
 			$('.container-properties .id').attr("value", currentContainer._id);
 			$('.container-properties .name').attr("value", currentContainer.text);
-			if (!currentContainer.custom >> 0) {
-				currentContainer.custom = {
-					"description": "",
-					"important": "",
-					"person": "",
-					"phone": "",
-					"SAL": ""
-				}
-			}
 			$('.container-properties .description')[0].value = currentContainer.custom.description;
 			$('.container-properties .important')[0].value = currentContainer.custom.important;
 			$('.container-properties .person')[0].value = currentContainer.custom.person;
@@ -453,13 +436,33 @@
 	 * @param {Number} nodeType 输入节点的类型
 	 * @param {Number} x 节点x坐标
 	 * @param {Number} y 节点y坐标
+	 * @param {JSON} custom 自定义属性(可选)
+	 * @param {String} name 定义的名称(可选)
+	 * @param {String} _id 定义的id(可选)
 	 */
-	function fAddNode(nodeClass, nodeType, x, y) {
+	function fAddNode(nodeClass, nodeType, x, y, custom, name, _id) {
 		var nodenum = nodes.length;
 		var node = new JTopo.Node(nodeType + (nodenum + 1));
 		node.setSize(44, 44);
 		node.setImage('./img/' + nodeClass + '/' + nodeType + '.png', true);
 		node.setLocation(x, y);
+		if (!custom>>0) {
+			node.custom = {
+				"ip": "",
+				"type": "",
+				"firms": "",
+				"series-name": "",
+				"version": "",
+				"area": "",
+				"child-name": "",
+				"important": "",
+				"description": ""
+			}
+		} else {
+			node.custom = custom;
+		}
+		if (name>>0) node.text = name;
+		if (_id>>0) node._id = _id;
 		nodes.push(node);
 		scene.add(node);
 		fCheckNode()
@@ -472,13 +475,27 @@
 	 * @param {Number} y
 	 * @param {Number} h
 	 * @param {Number} w
+	 * @param {JSON} custom 自定义属性(可选)
+	 * @param {String} name(可选)
 	 */
-	function fAddContainer(x, y, h, w) {
+	function fAddContainer(x, y, h, w, custom,name) {
 		var container = new JTopo.Container();
 		container.x = x - scene.translateX;
 		container.y = y - scene.translateY;
 		container.height = h;
 		container.width = w;
+		if(!custom>>0){
+			container.custom = {
+				"SAL": "",
+				"description": "",
+				"important": "",
+				"person": "",
+				"phone": "",
+			}
+		}else{
+			container.custom = custom;
+		}
+		if(name>>0) container.text = name;
 		containers.push(container);
 		fIsContainerInfoDone(container);
 		fCheckNode()
@@ -786,6 +803,7 @@
 					if (node.outLinks.length > 1) fNodeAlert(node, "单端口组件只能有一个连接")
 					if (node.inLinks.length + node.outLinks.length > 1) fNodeAlert(node, "单端口组件只能有一个连接")
 				} catch (e) {}
+
 				function _judge(node) {
 					try {
 						var nodes = fFindPrevNodes(node).concat(fFindNextNodes(node));
@@ -983,6 +1001,121 @@
 				console.log(e)
 			}
 		}
+	}
+
+
+	/**
+	 * 由服务器信息重建TOPO结构
+	 * @param  {Array} nodes
+	 * @param  {Array} zones
+	 * @param  {Array} links
+	 */
+	function reBuildTOPO(nodes, zones, links) {
+		//Put Nods
+		for (var i = 0; i < nodes.length; i++) {
+			var node = nodes[i];
+			fAddNode(node.img.split(".png")[0],node.x,nodes[i].y,{
+				"ip": node.ip,
+				"type": node["type"],
+				"firms": node.firms,
+				"series-name": node["series-name"],
+				"version": node["version"],
+				"area": node.area,
+				"child-name": node["child-name"],
+				"important": node.important,
+				"description": node["description"],
+			},node.name,node._id);
+		}
+		//Put Containers
+		for (var j = 0; j < zones.length; j++) {
+			var zone = zones[j];
+			fAddContainer(zone.x,zone.y,zone.height,zone.width,{
+				"SAL": zone.SAL,
+				"description": zone.description,
+				"important": zone.important,
+				"person": zone.person,
+				"phone":zone.phone,
+			},zone.name);
+		}
+		//Link the nodes
+		for (var k = 0; k < links.length; k++) {
+			var link = links[k];
+			var l = new JTopo.Link(_findNodeById(link.nodeA_id), _findNodeById(link.nodeZ_id));
+			//						l.arrowsRadius = 15;//带箭头的线
+			links.push(l); //将新增的连线存入数组
+			scene.add(l);
+		}
+		//finally
+		fCheckNode();
+		/**
+		 * 通过id找到对应的节点
+		 * @param  {String} id
+		 * @return {Object} node
+		 */
+		function _findNodeById(id){
+			for(var s =0;s<window.nodes.length;s++){
+				if(window.nodes[s]._id == id) return window.nodes[s];
+			}
+			return null
+		}
+	}
+
+
+	/**
+	 * 上传拓扑信息
+	 */
+	function uploadTOPO() {
+		var up_nodes = [];
+		var up_zones = [];
+		var up_links = [];
+		for (var i = 0; i < nodes.length; i++) {
+			var node = nodes[i];
+			var node_img = decodeURIComponent(node.image.src).split("/");
+			node_img = node_img[node_img.length - 1];
+			up_nodes.push({
+				"ip": node.custom.ip,
+				"type": node.custom["type"],
+				"firms": node.custom.firms,
+				"series-name": node.custom["series-name"],
+				"version": node.custom["version"],
+				"area": node.custom.area,
+				"child-name": node.custom["child-name"],
+				"important": node.custom.important,
+				"description": node.custom["description"],
+				//Prop
+				"x": node.x,
+				"y": node.y,
+				"img": node_img,
+				"name": node.text,
+				"_id": node._id
+			});
+		}
+		for (var s = 0; s < containers.length; s++) {
+			var container = containers[s];
+			up_zones.push({
+				"SAL": container.custom.SAL,
+				"description": container.custom.description,
+				"important": container.custom.important,
+				"person": container.custom.person ,
+				"phone":container.custom.phone,
+				//Prop
+				"x": container.x,
+				"y": container.y,
+				"height": container.height,
+				"width": container.width,
+				"_id": container._id,
+				"name": container.text
+			});
+		}
+		for (var p = 0; p < links.length; p++) {
+			var link = links[p];
+			up_links.push({
+				"nodeA_id": link.nodeA._id,
+				"nodeZ_id": link.nodeZ._id
+			});
+		}
+		console.log(up_nodes, up_zones, up_links)
+			//TODO:upload progress,using Jquery's ajax uploading
 	}
 </script>
 
