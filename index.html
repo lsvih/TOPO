@@ -13,7 +13,7 @@
 		<div class="add-container" onclick="fSelectTool(this)"><img src="icon/container.png" height="30px" width="30px">
 			<p>绘制区域</p>
 		</div>
-		<div class="save" onclick="uploadTOPO()"><img src="icon/save.png" height="30px" width="30px">
+		<div class="save" onclick="window.parent.location.href='/property'"><img src="icon/save.png" height="30px" width="30px">
 			<p>保存拓扑</p>
 		</div>
 	</div>
@@ -114,9 +114,18 @@
 		$(".tool").css({
 			height: PAGE_HEIGHT
 		});
-		$('li').each(function() {
-			tool_max_margin += $(this).height()
-		});
+		calcToolMarginHeight();
+		for(var w =0;w<document.getElementsByClassName("class-name").length;w++){
+			var item = document.getElementsByClassName("class-name")[w];
+			item.onclick = function(){
+				if(this.parentNode.style.height !== '20px'){
+					this.parentNode.style.height = '20px';
+				}else{
+					this.parentNode.style.height = 'auto';
+				}
+				calcToolMarginHeight();
+			}
+		}
 		$('.tool').mousewheel(function(event, delta) {
 			var delta = delta * 5; //调速
 			if (tool_margin + delta > 0) {
@@ -133,7 +142,7 @@
 					marginTop: tool_margin
 				})
 			}
-
+			event.preventDefault();
 		});
 		canvas.width = PAGE_WIDTH - TOOL_BAR_WIDTH;
 		canvas.height = PAGE_HEIGHT - TOOL_BAR_HEIGHT;
@@ -1116,6 +1125,13 @@
 		}
 		console.log(up_nodes, up_zones, up_links)
 			//TODO:upload progress,using Jquery's ajax uploading
+	}
+
+	function calcToolMarginHeight(){
+		tool_max_margin = 0;
+		$('li').each(function() {
+			tool_max_margin += $(this).height()
+		});
 	}
 </script>
 
